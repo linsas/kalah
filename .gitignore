@@ -8,3 +8,6 @@
 
 # Project uses zero-installs. Documentation: https://yarnpkg.com/features/zero-installs
 !.yarn/cache
+
+# TYPESCRIPT
+/dist

@@ -2,6 +2,7 @@
   "name": "kalah",
   "packageManager": "yarn@3.2.3",
   "private": true,
+  "type": "module",
   "dependencies": {
     "express": "4",
     "socket.io": "^4.5.2"
