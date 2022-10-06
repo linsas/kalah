@@ -17,16 +17,15 @@ expressApp.get('/client.js', (_req, res) => {
 const PORT = 9000
 
 httpServer.listen(PORT, () => {
-	console.info('Go to http://localhost:' + PORT)
+	console.log('Go to http://localhost:' + PORT)
 })
 
 const ioServer = new SocketioServer(httpServer)
+
 ioServer.on('connection', (socket) => {
-	console.info('connected')
-	socket.on('hello', (message: string) => {
-		console.info(message)
-	})
+	console.log(socket.id + ' connected')
+
 	socket.on('disconnect', () => {
-		console.info('disconnected')
+		console.log(socket.id + ' disconnected')
 	})
 })
