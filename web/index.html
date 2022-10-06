@@ -1,18 +1,66 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Kalah</title>
-		<meta charset='utf-8' />
-	</head>
-	<body>
-		<div>
-			<button id="connect">Connect</button>
-			<button id="send">Send message</button>
-			<button id="disconnect">Disconnect</button>
-		</div>
 
-		<script src="/socket.io/socket.io.js"></script>
-		<script src="/client.js"></script>
+<head>
+	<title>Kalah</title>
+	<meta charset='utf-8' />
+</head>
+<style>
+	#board {
+		display: inline-block;
+		background-color: lightblue;
+		padding: 10px;
+	}
+	#board.connected {
+		background-color: darkcyan;
+	}
 
-	</body>
+	.bin,
+	.store {
+		display: inline-block;
+		background-color: orange;
+		border-radius: 10px;
+	}
+
+	.bin {
+		width: 20px;
+		height: 20px;
+	}
+
+	.store {
+		width: 50px;
+		height: 50px;
+	}
+
+</style>
+
+<body>
+	<div id="board">
+		<div id="northStore" class="store"></div>
+		<div id="northBin6" class="bin"></div>
+		<div id="northBin5" class="bin"></div>
+		<div id="northBin4" class="bin"></div>
+		<div id="northBin3" class="bin"></div>
+		<div id="northBin2" class="bin"></div>
+		<div id="northBin1" class="bin"></div>
+		<br />
+		<div id="southBin1" class="bin"></div>
+		<div id="southBin2" class="bin"></div>
+		<div id="southBin3" class="bin"></div>
+		<div id="southBin4" class="bin"></div>
+		<div id="southBin5" class="bin"></div>
+		<div id="southBin6" class="bin"></div>
+		<div id="southStore" class="store"></div>
+	</div>
+
+	<div>
+		<button id="connect">Connect</button>
+		<button id="disconnect">Disconnect</button>
+	</div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/client.js"></script>
+
+</body>
+
 </html>

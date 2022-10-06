@@ -1,15 +1,19 @@
+const numBins = 6
+
 const socket = io({
 	autoConnect: false
+})
+
+socket.on('connect', () => {
+	document.querySelector('div#board').classList.add('connected')
+})
+socket.on('disconnect', () => {
+	document.querySelector('div#board').classList.remove('connected')
 })
 
 const handleConnect = () => {
 	if (socket.connected) return
 	socket.connect()
-}
-
-const handleSend = () => {
-	if (!socket.connected) return
-	socket.emit('hello', 'world')
 }
 
 const handleDisconnect = () => {
@@ -18,5 +22,4 @@ const handleDisconnect = () => {
 }
 
 document.querySelector('button#connect').addEventListener('click', handleConnect)
-document.querySelector('button#send').addEventListener('click', handleSend)
 document.querySelector('button#disconnect').addEventListener('click', handleDisconnect)
