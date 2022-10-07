@@ -11,6 +11,18 @@ socket.on('disconnect', () => {
 	document.querySelector('div#board').classList.remove('connected')
 })
 
+const getVesselId = vessel => (vessel > numBins ? 'north' : 'south') + (vessel % (numBins + 1) === numBins ? 'Store' : ('Bin' + (vessel % (numBins + 1) + 1)))
+
+socket.on('update', (gamestate) => {
+	const vessels = document.querySelectorAll('div#board > div')
+	vessels.forEach((node) => node.classList.remove('southMark', 'northMark'))
+
+	const target = document.querySelector('div#' + getVesselId(gamestate.vessel))
+	target.classList.add(gamestate.isNorthPlayer ? 'northMark' : 'southMark')
+
+	console.log(gamestate)
+})
+
 const handleConnect = () => {
 	if (socket.connected) return
 	socket.connect()
@@ -23,3 +35,19 @@ const handleDisconnect = () => {
 
 document.querySelector('button#connect').addEventListener('click', handleConnect)
 document.querySelector('button#disconnect').addEventListener('click', handleDisconnect)
+
+
+const handleClickVessel = (vessel) => {
+	if (socket.connected) {
+		socket.emit('play', vessel)
+	}
+}
+
+for (let index = 0; index < numBins; index++) {
+	const southBin = document.querySelector('div#southBin' + (index + 1))
+	const northBin = document.querySelector('div#northBin' + (index + 1))
+	southBin.addEventListener('click', () => handleClickVessel(index))
+	northBin.addEventListener('click', () => handleClickVessel(index + numBins + 1))
+}
+document.querySelector('div#southStore').addEventListener('click', () => handleClickVessel(numBins))
+document.querySelector('div#northStore').addEventListener('click', () => handleClickVessel(numBins * 2 + 1))
