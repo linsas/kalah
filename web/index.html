@@ -29,6 +29,16 @@
 			box-shadow: 0 0 20px 100px currentColor;
 			border-radius: 5px;
 		}
+		#board.southVictory {
+			color: hsl(51, 85%, 50%);
+		}
+		#board.northVictory {
+			color: hsl(16, 85%, 66%);
+		}
+		#board.tie {
+			color: hsl(323, 85%, 66%);
+		}
+
 		.south {
 			border-color: goldenrod;
 			background-color: gold;
@@ -38,23 +48,23 @@
 			background-color: coral;
 		}
 
-		#board.offline {
-			color: hsl(219, 35%, 66%);
-		}
-		#board.offline > .south {
-			border-color: hsl(43, 35%, 49%);
-			background-color: hsl(51, 65%, 66%);
-		}
-		#board.offline > .north {
+		#board.southTurn > .south { box-shadow: 0 0 10px 3px cyan; }
+		#board.southTurn > .north {
 			border-color: hsl(25, 35%, 47%);
-			background-color: hsl(16, 65%, 66%);
+			background-color: hsl(16, 75%, 66%);
+		}
+		#board.northTurn > .north { box-shadow: 0 0 10px 3px cyan; }
+		#board.northTurn > .south {
+			border-color: hsl(43, 35%, 49%);
+			background-color: hsl(51, 75%, 66%);
 		}
 
-		#board.southTurn > .south {
-			box-shadow: 0 0 10px 3px cyan;
+		#board.offline {
+			color: hsl(219, 25%, 66%);
 		}
-		#board.northTurn > .north {
-			box-shadow: 0 0 10px 3px cyan;
+		#board.offline > .vessel {
+			border-color: grey;
+			background-color: darkgrey;
 		}
 
 		.vessel {
@@ -75,13 +85,13 @@
 			font-size: large;
 			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 		}
-		.north > label {
-			align-self: start;
-			margin-top: -35px;
-		}
 		.south > label {
 			align-self: end;
 			margin-bottom: -35px;
+		}
+		.north > label {
+			align-self: start;
+			margin-top: -35px;
 		}
 
 		/* addtional styles for devices that support hover */
@@ -94,7 +104,8 @@
 				opacity: 1;
 			}
 		} */
-		.vessel:hover {
+		#board.southTurn > .vessel:hover,
+		#board.northTurn > .vessel:hover {
 			outline: white solid 2px;
 		}
 
