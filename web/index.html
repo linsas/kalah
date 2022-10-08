@@ -4,63 +4,139 @@
 <head>
 	<title>Kalah</title>
 	<meta charset='utf-8' />
+	<style>
+		html {
+			height: 100%;
+		}
+		body {
+			margin: 0;
+			height: 100%;
+			display: flex;
+			flex-flow: column;
+			gap: 50px;
+			align-items: center;
+			justify-content: center;
+		}
+
+		#board {
+			color: cornflowerblue;
+			padding: 20px;
+			display: grid;
+			grid-template-columns: 70px repeat(6, 50px) 70px;
+			grid-template-rows: repeat(2, 50px);
+			gap: 15px;
+			background-color: currentColor;
+			box-shadow: 0 0 20px 100px currentColor;
+			border-radius: 5px;
+		}
+		.south {
+			border-color: goldenrod;
+			background-color: gold;
+		}
+		.north {
+			border-color: chocolate;
+			background-color: coral;
+		}
+
+		#board.offline {
+			color: hsl(219, 35%, 66%);
+		}
+		#board.offline > .south {
+			border-color: hsl(43, 35%, 49%);
+			background-color: hsl(51, 65%, 66%);
+		}
+		#board.offline > .north {
+			border-color: hsl(25, 35%, 47%);
+			background-color: hsl(16, 65%, 66%);
+		}
+
+		#board.southTurn > .south {
+			box-shadow: 0 0 10px 3px cyan;
+		}
+		#board.northTurn > .north {
+			box-shadow: 0 0 10px 3px cyan;
+		}
+
+		.vessel {
+			color: initial;
+			border-style: solid;
+			border-width: 2px;
+			border-radius: 25px;
+			cursor: pointer;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		label {
+			width: 100%;
+			text-align: center;
+			font-weight: bolder;
+			font-size: large;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		}
+		.north > label {
+			align-self: start;
+			margin-top: -35px;
+		}
+		.south > label {
+			align-self: end;
+			margin-bottom: -35px;
+		}
+
+		/* addtional styles for devices that support hover */
+		/* @media (hover: hover) {
+			label {
+				transition: opacity .1s;
+				opacity: 0;
+			}
+			.vessel:hover > label, .vessel:focus-visible > label {
+				opacity: 1;
+			}
+		} */
+		.vessel:hover {
+			outline: white solid 2px;
+		}
+
+		#southBin1 { grid-area: -2 / 2 / span 1 / span 1; }
+		#southBin2 { grid-area: -2 / 3 / span 1 / span 1; }
+		#southBin3 { grid-area: -2 / 4 / span 1 / span 1; }
+		#southBin4 { grid-area: -2 / 5 / span 1 / span 1; }
+		#southBin5 { grid-area: -2 / 6 / span 1 / span 1; }
+		#southBin6 { grid-area: -2 / 7 / span 1 / span 1; }
+		#southStore { grid-area: 1 / 1 / span 2 / span 1; }
+		#northBin1 { grid-area: 1 / -3 / span 1 / span 1; }
+		#northBin2 { grid-area: 1 / -4 / span 1 / span 1; }
+		#northBin3 { grid-area: 1 / -5 / span 1 / span 1; }
+		#northBin4 { grid-area: 1 / -6 / span 1 / span 1; }
+		#northBin5 { grid-area: 1 / -7 / span 1 / span 1; }
+		#northBin6 { grid-area: 1 / -8 / span 1 / span 1; }
+		#northStore { grid-area: -3 / -2 / span 2 / span 1; }
+
+		#buttons {
+			text-align: center;
+		}
+	</style>
 </head>
-<style>
-	#board {
-		display: inline-block;
-		background-color: lightblue;
-		padding: 10px;
-	}
-	#board.connected {
-		background-color: darkcyan;
-	}
-
-	.north.turn, .south.turn {
-		box-shadow: 0 0 0 1px white;
-	}
-
-	.bin,
-	.store {
-		cursor: pointer;
-		display: inline-block;
-		background-color: orange;
-		border-radius: 10px;
-		vertical-align: middle;
-		text-align: center;
-	}
-
-	.bin {
-		width: 20px;
-		height: 20px;
-	}
-
-	.store {
-		width: 50px;
-		height: 50px;
-	}
-
-</style>
 
 <body>
-	<div id="board">
-		<div id="northStore" class="north store"></div>
-		<div id="northBin6" class="north bin"></div>
-		<div id="northBin5" class="north bin"></div>
-		<div id="northBin4" class="north bin"></div>
-		<div id="northBin3" class="north bin"></div>
-		<div id="northBin2" class="north bin"></div>
-		<div id="northBin1" class="north bin"></div>
-		<br />
-		<div id="southBin1" class="south bin"></div>
-		<div id="southBin2" class="south bin"></div>
-		<div id="southBin3" class="south bin"></div>
-		<div id="southBin4" class="south bin"></div>
-		<div id="southBin5" class="south bin"></div>
-		<div id="southBin6" class="south bin"></div>
-		<div id="southStore" class="south store"></div>
+	<div id="board" class="offline">
+		<div tabindex="0" class="south bin vessel" id="southBin1"><label>0</label></div>
+		<div tabindex="0" class="south bin vessel" id="southBin2"><label>0</label></div>
+		<div tabindex="0" class="south bin vessel" id="southBin3"><label>0</label></div>
+		<div tabindex="0" class="south bin vessel" id="southBin4"><label>0</label></div>
+		<div tabindex="0" class="south bin vessel" id="southBin5"><label>0</label></div>
+		<div tabindex="0" class="south bin vessel" id="southBin6"><label>0</label></div>
+		<div tabindex="0" class="south store vessel" id="northStore"><label>0</label></div>
+		<div tabindex="0" class="north bin vessel" id="northBin1"><label>0</label></div>
+		<div tabindex="0" class="north bin vessel" id="northBin2"><label>0</label></div>
+		<div tabindex="0" class="north bin vessel" id="northBin3"><label>0</label></div>
+		<div tabindex="0" class="north bin vessel" id="northBin4"><label>0</label></div>
+		<div tabindex="0" class="north bin vessel" id="northBin5"><label>0</label></div>
+		<div tabindex="0" class="north bin vessel" id="northBin6"><label>0</label></div>
+		<div tabindex="0" class="north store vessel" id="southStore"><label>0</label></div>
 	</div>
-
-	<div>
+	<div id="buttons">
 		<button id="connect">Connect</button>
 		<button id="disconnect">Disconnect</button>
 	</div>
