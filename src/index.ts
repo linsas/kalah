@@ -60,6 +60,35 @@ ioServer.on('connection', (socket) => {
 
 	updateClient(socket.id)
 
+	socket.on('role', (bePlayer: boolean) => {
+		if (bePlayer) {
+			if (north == socket.id || south == socket.id) {
+				console.log(socket.id + ' is already a player!')
+				return
+			}
+			if (north == null) {
+				north = socket.id
+				console.log(socket.id + ' is now north')
+				return
+			}
+			if (south == null) {
+				south = socket.id
+				console.log(socket.id + ' is now south')
+				return
+			}
+			console.log('No player slots for ' + socket.id)
+		} else { // remove from actively playing
+			if (socket.id === north) {
+				north = null
+				console.log(socket.id + ' is no longer north')
+			}
+			if (socket.id === south) {
+				south = null
+				console.log(socket.id + ' is no longer south')
+			}
+		}
+	})
+
 	socket.on('play', (vessel) => {
 		if (socket.id !== north && socket.id !== south) {
 			console.log(socket.id + ' is not a player')
@@ -74,6 +103,15 @@ ioServer.on('connection', (socket) => {
 
 		console.log((isNorthPlayer ? 'north' : 'south') + ' played ' + vessel)
 		game.play(vessel)
+		updateAllClients()
+	})
+
+	socket.on('reset', () => {
+		console.log(socket.id + ' reset the game!')
+
+		north = null
+		south = null
+		game = new KalahGame()
 		updateAllClients()
 	})
 
