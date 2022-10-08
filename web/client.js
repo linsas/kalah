@@ -8,17 +8,19 @@ socket.on('connect', () => {
 	document.querySelector('div#board').classList.remove('offline')
 })
 socket.on('disconnect', () => {
-	document.querySelector('div#board').classList.remove('southTurn', 'northTurn')
+	document.querySelector('div#board').classList.remove('southTurn', 'northTurn', 'southVictory', 'northVictory', 'tie')
 	document.querySelector('div#board').classList.add('offline')
 })
 
 socket.on('update', (payload) => {
 	const state = payload.gameState
 
-	document.querySelector('div#board').classList.remove('southTurn', 'northTurn')
+	document.querySelector('div#board').classList.remove('southTurn', 'northTurn', 'southVictory', 'northVictory', 'tie')
 	if (state === 0) document.querySelector('div#board').classList.add('southTurn')
 	if (state === 1) document.querySelector('div#board').classList.add('northTurn')
-	// TODO: add styles for other states
+	if (state === 2) document.querySelector('div#board').classList.add('southVictory')
+	if (state === 3) document.querySelector('div#board').classList.add('northVictory')
+	if (state === 4) document.querySelector('div#board').classList.add('tie')
 
 	const board = payload.board
 	for (let index = 0; index < board.length; index++) {
