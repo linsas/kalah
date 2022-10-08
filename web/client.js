@@ -34,11 +34,22 @@ const handleDisconnect = () => {
 	socket.disconnect()
 }
 
+const handleClickRole = (bePlayer) => {
+	socket.emit('role', bePlayer)
+}
 
-document.querySelector('button#connect').addEventListener('click', handleConnect)
-document.querySelector('button#disconnect').addEventListener('click', handleDisconnect)
+const handleClickReset = () => {
+	socket.emit('reset')
+}
+
 
 const vessels = document.querySelectorAll('#board > .vessel')
 for (let index = 0; index < vessels.length; index++) {
 	vessels[index].addEventListener('click', () => handleClickVessel(index))
 }
+
+document.querySelector('button#connect').addEventListener('click', handleConnect)
+document.querySelector('button#disconnect').addEventListener('click', handleDisconnect)
+document.querySelector('button#play').addEventListener('click', () => handleClickRole(true))
+document.querySelector('button#spectate').addEventListener('click', () => handleClickRole(false))
+document.querySelector('button#reset').addEventListener('click', handleClickReset)
