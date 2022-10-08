@@ -15,12 +15,16 @@ const getVesselId = vessel => (vessel > numBins ? 'north' : 'south') + (vessel %
 
 socket.on('update', (gamestate) => {
 	const vessels = document.querySelectorAll('div#board > div')
-	vessels.forEach((node) => node.classList.remove('southMark', 'northMark'))
+	vessels.forEach((node) => {
+		node.classList.remove('turn')
+		if (node.classList.contains(gamestate.isNorthTurn ? 'north' : 'south')) node.classList.add('turn')
+	})
 
-	const target = document.querySelector('div#' + getVesselId(gamestate.vessel))
-	target.classList.add(gamestate.isNorthPlayer ? 'northMark' : 'southMark')
-
-	console.log(gamestate)
+	for (let index = 0; index < gamestate.board.length; index++) {
+		const stones = gamestate.board[index]
+		const element = document.querySelector('div#' + getVesselId(index))
+		element.innerText = stones
+	}
 })
 
 const handleConnect = () => {
