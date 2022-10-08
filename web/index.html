@@ -14,11 +14,9 @@
 	#board.connected {
 		background-color: darkcyan;
 	}
-	#board > .northMark {
-		background-color: chocolate;
-	}
-	#board > .southMark {
-		background-color: yellow;
+
+	.north.turn, .south.turn {
+		box-shadow: 0 0 0 1px white;
 	}
 
 	.bin,
@@ -27,6 +25,8 @@
 		display: inline-block;
 		background-color: orange;
 		border-radius: 10px;
+		vertical-align: middle;
+		text-align: center;
 	}
 
 	.bin {
@@ -43,21 +43,21 @@
 
 <body>
 	<div id="board">
-		<div id="northStore" class="store"></div>
-		<div id="northBin6" class="bin"></div>
-		<div id="northBin5" class="bin"></div>
-		<div id="northBin4" class="bin"></div>
-		<div id="northBin3" class="bin"></div>
-		<div id="northBin2" class="bin"></div>
-		<div id="northBin1" class="bin"></div>
+		<div id="northStore" class="north store"></div>
+		<div id="northBin6" class="north bin"></div>
+		<div id="northBin5" class="north bin"></div>
+		<div id="northBin4" class="north bin"></div>
+		<div id="northBin3" class="north bin"></div>
+		<div id="northBin2" class="north bin"></div>
+		<div id="northBin1" class="north bin"></div>
 		<br />
-		<div id="southBin1" class="bin"></div>
-		<div id="southBin2" class="bin"></div>
-		<div id="southBin3" class="bin"></div>
-		<div id="southBin4" class="bin"></div>
-		<div id="southBin5" class="bin"></div>
-		<div id="southBin6" class="bin"></div>
-		<div id="southStore" class="store"></div>
+		<div id="southBin1" class="south bin"></div>
+		<div id="southBin2" class="south bin"></div>
+		<div id="southBin3" class="south bin"></div>
+		<div id="southBin4" class="south bin"></div>
+		<div id="southBin5" class="south bin"></div>
+		<div id="southBin6" class="south bin"></div>
+		<div id="southStore" class="south store"></div>
 	</div>
 
 	<div>
