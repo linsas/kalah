@@ -1,6 +1,15 @@
+export enum KalahGameState {
+	SOUTH_TURN,
+	NORTH_TURN,
+	SOUTH_VICTORY,
+	NORTH_VICTORY,
+	TIE,
+	GAME_OVER,
+}
+
 class KalahGame {
 	private board: number[]
-	private isNorthTurn: boolean
+	private gameState: KalahGameState
 
 	readonly numBins: number
 	readonly maxVesselIndex: number
@@ -12,7 +21,7 @@ class KalahGame {
 		this.maxVesselIndex = 2 * numBins + 1
 
 		this.numBins = numBins
-		this.isNorthTurn = false
+		this.gameState = KalahGameState.SOUTH_TURN
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
 		this.board[this.numBins] = 0
 		this.board[this.maxVesselIndex] = 0
@@ -23,9 +32,9 @@ class KalahGame {
 		return this.board.slice()
 	}
 
-	/** Returns whether it is the north player's turn */
-	getIsNorthTurn() {
-		return this.isNorthTurn
+	/** Returns the state of the game (@see KalahGameState) */
+	getGameState() {
+		return this.gameState
 	}
 
 	/** Returns whether the vessel belongs to the north/south player */
@@ -46,7 +55,7 @@ class KalahGame {
 		if (vessel < 0) throw null
 		if (vessel > this.maxVesselIndex) throw null
 
-		const isNorthPlaying = this.isNorthTurn
+		const isNorthPlaying = this.gameState === KalahGameState.NORTH_TURN
 
 		const ownStore = isNorthPlaying ? this.maxVesselIndex : this.numBins
 		const opponentStore = isNorthPlaying ? this.numBins : this.maxVesselIndex
@@ -71,7 +80,44 @@ class KalahGame {
 		}
 
 		if (vessel !== ownStore) {
-			this.isNorthTurn = !isNorthPlaying
+			this.gameState = isNorthPlaying ? KalahGameState.SOUTH_TURN : KalahGameState.NORTH_TURN
+		} else {
+			this.gameState = isNorthPlaying ? KalahGameState.NORTH_TURN : KalahGameState.SOUTH_TURN
+		}
+
+		this.checkForVictory()
+	}
+
+	checkForVictory() {
+		let southScore = 0
+		let northScore = 0
+		let southClear = true
+		let northClear = true
+		for (let index = 0; index < this.board.length; index++) {
+			const numStones = this.board[index]
+			if (index <= this.numBins) {
+				// south side
+				southScore += numStones
+				if (numStones > 0 && index !== this.numBins) {
+					southClear = false
+				}
+			} else {
+				// north side
+				northScore += numStones
+				if (numStones > 0 && index !== this.maxVesselIndex) {
+					northClear = false
+				}
+			}
+		}
+
+		if (southClear || northClear) {
+			if (southScore > northScore) {
+				this.gameState = KalahGameState.SOUTH_VICTORY
+			} else if (northScore > southScore) {
+				this.gameState = KalahGameState.NORTH_VICTORY
+			} else {
+				this.gameState = KalahGameState.TIE
+			}
 		}
 	}
 }

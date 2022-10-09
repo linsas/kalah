@@ -12,11 +12,15 @@ socket.on('disconnect', () => {
 	document.querySelector('div#board').classList.add('offline')
 })
 
-socket.on('update', (gamestate) => {
-	document.querySelector('div#board').classList.remove('southTurn', 'northTurn')
-	document.querySelector('div#board').classList.add(gamestate.isNorthTurn ? 'northTurn' : 'southTurn')
+socket.on('update', (payload) => {
+	const state = payload.gameState
 
-	const board = gamestate.board
+	document.querySelector('div#board').classList.remove('southTurn', 'northTurn')
+	if (state === 0) document.querySelector('div#board').classList.add('southTurn')
+	if (state === 1) document.querySelector('div#board').classList.add('northTurn')
+	// TODO: add styles for other states
+
+	const board = payload.board
 	for (let index = 0; index < board.length; index++) {
 		const vessel = document.querySelectorAll('.vessel')[index]
 

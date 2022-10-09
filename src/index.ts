@@ -1,7 +1,7 @@
 import express from 'express'
 import http from 'http'
 import { Server as SocketioServer } from 'socket.io'
-import KalahGame from './KalahGame.js'
+import KalahGame, { KalahGameState } from './KalahGame.js'
 
 const websiteRoot = './web'
 
@@ -30,11 +30,11 @@ let game = new KalahGame()
 
 const updateClient = (clientId: string) => {
 	const board = game.getBoard()
-	const isNorthTurn = game.getIsNorthTurn()
+	const gameState = game.getGameState()
 
 	ioServer.to(clientId).emit('update', {
 		board,
-		isNorthTurn,
+		gameState,
 	})
 }
 
@@ -62,13 +62,8 @@ ioServer.on('connection', (socket) => {
 
 	socket.on('role', (bePlayer: boolean) => {
 		if (bePlayer) {
-			if (north == socket.id || south == socket.id) {
+			if (south == socket.id || north == socket.id) {
 				console.log(socket.id + ' is already a player!')
-				return
-			}
-			if (north == null) {
-				north = socket.id
-				console.log(socket.id + ' is now north')
 				return
 			}
 			if (south == null) {
@@ -76,28 +71,38 @@ ioServer.on('connection', (socket) => {
 				console.log(socket.id + ' is now south')
 				return
 			}
+			if (north == null) {
+				north = socket.id
+				console.log(socket.id + ' is now north')
+				return
+			}
 			console.log('No player slots for ' + socket.id)
 		} else { // remove from actively playing
-			if (socket.id === north) {
-				north = null
-				console.log(socket.id + ' is no longer north')
-			}
 			if (socket.id === south) {
 				south = null
 				console.log(socket.id + ' is no longer south')
+			}
+			if (socket.id === north) {
+				north = null
+				console.log(socket.id + ' is no longer north')
 			}
 		}
 	})
 
 	socket.on('play', (vessel) => {
-		if (socket.id !== north && socket.id !== south) {
+		const gameState = game.getGameState()
+
+		if (socket.id === south) {
+			if (gameState !== KalahGameState.SOUTH_TURN) return
+		} else if (socket.id === north) {
+			if (gameState !== KalahGameState.NORTH_TURN) return
+		} else {
 			console.log(socket.id + ' is not a player')
 			return
 		}
 
 		const isNorthPlayer = socket.id === north
 
-		if (game.getIsNorthTurn() !== isNorthPlayer) return
 		if (!game.getIsOwnVessel(isNorthPlayer, vessel)) return
 		if (game.getStonesInVessel(vessel) === 0) return
 
@@ -109,15 +114,15 @@ ioServer.on('connection', (socket) => {
 	socket.on('reset', () => {
 		console.log(socket.id + ' reset the game!')
 
-		north = null
 		south = null
+		north = null
 		game = new KalahGame()
 		updateAllClients()
 	})
 
 	socket.on('disconnect', () => {
 		console.log(socket.id + ' disconnected')
-		if (socket.id === north) north = null
 		if (socket.id === south) south = null
+		if (socket.id === north) north = null
 	})
 })
