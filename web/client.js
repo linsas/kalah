@@ -16,9 +16,22 @@ socket.on('update', (gamestate) => {
 	document.querySelector('div#board').classList.remove('southTurn', 'northTurn')
 	document.querySelector('div#board').classList.add(gamestate.isNorthTurn ? 'northTurn' : 'southTurn')
 
-	const labelElements = document.querySelectorAll('.vessel > label')
-	for (let vessel = 0; vessel < gamestate.board.length; vessel++) {
-		labelElements[vessel].textContent = gamestate.board[vessel]
+	const board = gamestate.board
+	for (let index = 0; index < board.length; index++) {
+		const vessel = document.querySelectorAll('.vessel')[index]
+
+		const label = vessel.querySelector('label')
+		label.textContent = board[index]
+
+		const stones = vessel.querySelectorAll('div.stone')
+		if (stones.length != board[index]) {
+			stones.forEach(e => e.remove())
+			for (let j = 0; j < board[index]; j++) {
+				const node = document.createElement('div');
+				node.className = 'white stone'
+				vessel.append(node)
+			}
+		}
 	}
 })
 

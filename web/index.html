@@ -113,6 +113,48 @@
 		#northBin6 { grid-area: 1 / -8 / span 1 / span 1; }
 		#northStore { grid-area: -3 / -2 / span 2 / span 1; }
 
+		.stone {
+			position: absolute;
+			width: 12px;
+			height: 12px;
+			border: 1px solid #222;
+			border-radius: 50%;
+		}
+		.stone.white { border-color: dimgray; background-color: white; }
+
+		/* TODO: write better positions */
+		.bin > .stone:nth-child(10n+1) { transform: translate(-20%, 20%); }
+		.bin > .stone:nth-child(10n+1):last-of-type { transform: translate(-10%, 10%); }
+		.bin > .stone:nth-child(10n+2) { transform: translate(10%, -40%); }
+		.bin > .stone:nth-child(10n+2):last-of-type { transform: translate(10%, -20%); }
+		.bin > .stone:nth-child(10n+3) { transform: translate(50%, 20%); }
+		.bin > .stone:nth-child(10n+3):last-of-type { transform: translate(30%, 20%); }
+		.bin > .stone:nth-child(10n+4) { transform: translate(-40%, -40%); }
+		.bin > .stone:nth-child(10n+4):last-of-type { transform: translate(-30%, -30%); }
+		.bin > .stone:nth-child(10n+5) { transform: translate(10%, 70%); }
+		.bin > .stone:nth-child(10n+5):last-of-type { transform: translate(10%, 40%); }
+		.bin > .stone:nth-child(10n+6) { transform: translate(60%, -60%); }
+		.bin > .stone:nth-child(10n+6):last-of-type { transform: translate(40%, -40%); }
+		.bin > .stone:nth-child(10n+7) { transform: translate(-60%, 50%); }
+		.bin > .stone:nth-child(10n+7):last-of-type { transform: translate(-10%, 20%); }
+		.bin > .stone:nth-child(10n+8) { transform: translate(10%, -90%); }
+		.bin > .stone:nth-child(10n+8):last-of-type { transform: translate(20%, -40%); }
+		.bin > .stone:nth-child(10n+9) { transform: translate(80%, -30%); }
+		.bin > .stone:nth-child(10n+9):last-of-type { transform: translate(40%, -20%); }
+		.bin > .stone:nth-child(10n+0) { transform: translate(-70%, -10%); }
+		.bin > .stone:nth-child(10n+0):last-of-type { transform: translate(-50%, -20%); }
+
+		.store > .stone:nth-child(10n+1) { transform: translate(-20%, 20%); }
+		.store > .stone:nth-child(10n+2) { transform: translate(10%, -40%); }
+		.store > .stone:nth-child(10n+3) { transform: translate(50%, 20%); }
+		.store > .stone:nth-child(10n+4) { transform: translate(-40%, -40%); }
+		.store > .stone:nth-child(10n+5) { transform: translate(10%, 70%); }
+		.store > .stone:nth-child(10n+6) { transform: translate(60%, -60%); }
+		.store > .stone:nth-child(10n+7) { transform: translate(-60%, 50%); }
+		.store > .stone:nth-child(10n+8) { transform: translate(10%, -90%); }
+		.store > .stone:nth-child(10n+9) { transform: translate(80%, -30%); }
+		.store > .stone:nth-child(10n+0) { transform: translate(-70%, -10%); }
+
 		#buttons {
 			text-align: center;
 		}
