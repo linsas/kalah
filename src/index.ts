@@ -14,6 +14,9 @@ expressApp.get('/', (_req, res) => {
 expressApp.get('/client.js', (_req, res) => {
 	res.sendFile('/client.js', { root: websiteRoot })
 })
+expressApp.get('/styles.css', (_req, res) => {
+	res.sendFile('/styles.css', { root: websiteRoot })
+})
 
 const PORT = 9000
 
