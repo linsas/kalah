@@ -1,4 +1,5 @@
 const numBins = 6
+const stoneClasses = ['common', 'uncommon', 'rare', 'veryrare', 'ultrarare']
 
 const socket = io({
 	autoConnect: false
@@ -30,13 +31,14 @@ socket.on('update', (payload) => {
 		label.textContent = board[index]
 
 		const stones = vessel.querySelectorAll('div.stone')
-		if (stones.length != board[index]) {
-			stones.forEach(e => e.remove())
-			for (let j = 0; j < board[index]; j++) {
-				const node = document.createElement('div');
-				node.className = 'white stone'
-				vessel.append(node)
-			}
+		if (stones.length == board[index]) continue
+
+		stones.forEach(e => e.remove())
+		for (let j = 0; j < board[index]; j++) {
+			const node = document.createElement('div')
+			const colorIndex = Math.floor(Math.random() ** 1.5 * 5)
+			node.className = stoneClasses[colorIndex] + ' stone'
+			vessel.append(node)
 		}
 	}
 })

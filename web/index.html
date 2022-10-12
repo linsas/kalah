@@ -131,7 +131,13 @@
 			border: 1px solid #222;
 			border-radius: 50%;
 		}
-		.stone.white { border-color: dimgray; background-color: white; }
+		.stone.common { border-color: darkgreen; background-color: green; }
+		.stone.uncommon { border-color: darkblue; background-color: blue; }
+		.stone.rare { border-color: darkcyan; background-color: darkturquoise; }
+		.stone.veryrare { border-color: darkred; background-color: crimson; }
+		.stone.ultrarare { border-color: dimgrey; background-color: white; }
+
+		#board.offline .stone { border-color: lightgrey; background-color: dimgrey; }
 
 		/* TODO: write better positions */
 		.bin > .stone:nth-child(10n+1) { transform: translate(-20%, 20%); }
