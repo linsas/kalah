@@ -1,4 +1,4 @@
-export enum KalahGameState {
+enum KalahGameState {
 	SOUTH_TURN,
 	NORTH_TURN,
 	SOUTH_VICTORY,
@@ -122,4 +122,4 @@ class KalahGame {
 	}
 }
 
-export default KalahGame
+export { KalahGame, KalahGameState }
