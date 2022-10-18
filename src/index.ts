@@ -1,7 +1,7 @@
 import express from 'express'
 import http from 'http'
 import { Server as SocketioServer } from 'socket.io'
-import KalahGame, { KalahGameState } from './KalahGame.js'
+import { KalahGame } from './KalahGame.js'
 
 const websiteRoot = './web'
 
