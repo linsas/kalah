@@ -1,6 +1,8 @@
 import express from 'express'
 import http from 'http'
 import { Server as SocketioServer } from 'socket.io'
+
+import { IClient, NorthPlayer, SouthPlayer, Spectator } from './Client.js'
 import { KalahGame } from './KalahGame.js'
 
 const websiteRoot = './web'
@@ -31,14 +33,23 @@ let north: string | null = null
 
 let game = new KalahGame()
 
-const updateClient = (clientId: string) => {
-	const board = game.getBoard()
-	const gameState = game.getGameState()
+let southClient = new SouthPlayer(game)
+let northClient = new NorthPlayer(game)
+let spectatorClient = new Spectator(game)
 
-	ioServer.to(clientId).emit('update', {
-		board,
-		gameState,
-	})
+const getClientProxy = (socketId: string): IClient => {
+	if (socketId === south) {
+		return southClient
+	} else if (socketId === north) {
+		return northClient
+	}
+	return spectatorClient
+}
+
+const updateClient = (clientId: string) => {
+	const playerProxy = getClientProxy(clientId)
+	const payload = playerProxy.getPayload()
+	ioServer.to(clientId).emit('update', payload)
 }
 
 const updateAllClients = async () => {
@@ -65,8 +76,12 @@ ioServer.on('connection', (socket) => {
 
 	socket.on('role', (bePlayer: boolean) => {
 		if (bePlayer) {
-			if (south == socket.id || north == socket.id) {
-				console.log(socket.id + ' is already a player!')
+			if (south == socket.id) {
+				console.log(socket.id + ' is already south!')
+				return
+			}
+			if (north == socket.id) {
+				console.log(socket.id + ' is already north!')
 				return
 			}
 			if (south == null) {
@@ -80,7 +95,8 @@ ioServer.on('connection', (socket) => {
 				return
 			}
 			console.log('No player slots for ' + socket.id)
-		} else { // remove from actively playing
+		} else {
+			// remove from actively playing
 			if (socket.id === south) {
 				south = null
 				console.log(socket.id + ' is no longer south')
@@ -93,24 +109,9 @@ ioServer.on('connection', (socket) => {
 	})
 
 	socket.on('play', (vessel) => {
-		const gameState = game.getGameState()
+		const player = getClientProxy(socket.id)
+		player.play(vessel)
 
-		if (socket.id === south) {
-			if (gameState !== KalahGameState.SOUTH_TURN) return
-		} else if (socket.id === north) {
-			if (gameState !== KalahGameState.NORTH_TURN) return
-		} else {
-			console.log(socket.id + ' is not a player')
-			return
-		}
-
-		const isNorthPlayer = socket.id === north
-
-		if (!game.getIsOwnVessel(isNorthPlayer, vessel)) return
-		if (game.getStonesInVessel(vessel) === 0) return
-
-		console.log((isNorthPlayer ? 'north' : 'south') + ' played ' + vessel)
-		game.play(vessel)
 		updateAllClients()
 	})
 
