@@ -27,7 +27,7 @@ class KalahGame {
 		this.board[this.maxVesselIndex] = 0
 	}
 
-	/** Returns a copy of the game board */
+	/** Returns a representation of the game board */
 	getBoard() {
 		return this.board.slice()
 	}
@@ -35,12 +35,6 @@ class KalahGame {
 	/** Returns the state of the game (@see KalahGameState) */
 	getGameState() {
 		return this.gameState
-	}
-
-	/** Returns whether the vessel belongs to the north/south player */
-	getIsOwnVessel(isNorthPlayer: boolean, vessel: number) {
-		const ownStore = isNorthPlayer ? this.maxVesselIndex : this.numBins
-		return vessel <= ownStore && vessel >= (ownStore - this.numBins)
 	}
 
 	/** Gets the number of stones in a vessel */
