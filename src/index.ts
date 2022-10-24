@@ -121,6 +121,9 @@ ioServer.on('connection', (socket) => {
 		south = null
 		north = null
 		game = new KalahGame()
+		southClient = new SouthPlayer(game)
+		northClient = new NorthPlayer(game)
+		spectatorClient = new Spectator(game)
 		updateAllClients()
 	})
 
