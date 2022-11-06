@@ -11,25 +11,27 @@ body {
 	justify-content: center;
 }
 
+/* BOARD */
+
 #board {
-	color: cornflowerblue;
+	--board-color: cornflowerblue;
 	padding: 20px;
 	display: grid;
 	grid-template-columns: 70px repeat(6, 50px) 70px;
 	grid-template-rows: repeat(2, 50px);
 	gap: 15px;
-	background-color: currentColor;
-	box-shadow: 0 0 20px 100px currentColor;
+	background-color: var(--board-color);
+	box-shadow: 0 0 20px 100px var(--board-color);
 	border-radius: 5px;
 }
 #board.southVictory {
-	color: hsl(51, 85%, 50%);
+	--board-color: hsl(51, 85%, 50%);
 }
 #board.northVictory {
-	color: hsl(16, 85%, 66%);
+	--board-color: hsl(16, 85%, 66%);
 }
 #board.tie {
-	color: hsl(323, 85%, 66%);
+	--board-color: hsl(323, 85%, 66%);
 }
 
 .south {
@@ -53,7 +55,7 @@ body {
 }
 
 #board.offline {
-	color: hsl(219, 25%, 66%);
+	--board-color: hsl(219, 25%, 66%);
 }
 #board.offline > .vessel {
 	border-color: grey;
@@ -61,11 +63,9 @@ body {
 }
 
 .vessel {
-	color: initial;
 	border-style: solid;
 	border-width: 2px;
 	border-radius: 25px;
-	cursor: pointer;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -117,6 +117,8 @@ label {
 #northBin6 { grid-area: 1 / -8 / span 1 / span 1; }
 #northStore { grid-area: -3 / -2 / span 2 / span 1; }
 
+/* STONES */
+
 .stone {
 	position: absolute;
 	width: 12px;
@@ -164,6 +166,8 @@ label {
 .store > .stone:nth-child(10n+8) { transform: translate(10%, -90%); }
 .store > .stone:nth-child(10n+9) { transform: translate(80%, -30%); }
 .store > .stone:nth-child(10n+0) { transform: translate(-70%, -10%); }
+
+/* CONTROLS */
 
 #buttons {
 	text-align: center;
