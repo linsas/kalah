@@ -87,11 +87,13 @@ ioServer.on('connection', (socket) => {
 			if (south == null) {
 				south = socket.id
 				console.log(socket.id + ' is now south')
+				updateClient(socket.id)
 				return
 			}
 			if (north == null) {
 				north = socket.id
 				console.log(socket.id + ' is now north')
+				updateClient(socket.id)
 				return
 			}
 			console.log('No player slots for ' + socket.id)
@@ -100,10 +102,14 @@ ioServer.on('connection', (socket) => {
 			if (socket.id === south) {
 				south = null
 				console.log(socket.id + ' is no longer south')
+				updateClient(socket.id)
+				return
 			}
 			if (socket.id === north) {
 				north = null
 				console.log(socket.id + ' is no longer north')
+				updateClient(socket.id)
+				return
 			}
 		}
 	})
