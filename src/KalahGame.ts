@@ -1,10 +1,10 @@
 enum KalahGameState {
-	SOUTH_TURN,
-	NORTH_TURN,
-	SOUTH_VICTORY,
-	NORTH_VICTORY,
-	TIE,
-	GAME_OVER,
+	SOUTH_TURN = 0,
+	NORTH_TURN = 1,
+	SOUTH_VICTORY = 2,
+	NORTH_VICTORY = 3,
+	TIE = 4,
+	GAME_OVER = 5,
 }
 
 class KalahGame {
@@ -44,8 +44,7 @@ class KalahGame {
 		return this.board[vessel]
 	}
 
-	/** Plays the given vessel index */
-	play(vessel: number) {
+	private play(vessel: number) {
 		if (vessel < 0) throw null
 		if (vessel > this.maxVesselIndex) throw null
 
@@ -82,7 +81,20 @@ class KalahGame {
 		this.checkForVictory()
 	}
 
-	checkForVictory() {
+	playSouth(vessel: number) {
+		if (this.getGameState() !== KalahGameState.SOUTH_TURN) return
+		if (vessel > this.numBins) return
+		if (this.getStonesInVessel(vessel) === 0) return
+		this.play(vessel)
+	}
+	playNorth(vessel: number) {
+		if (this.getGameState() !== KalahGameState.NORTH_TURN) return
+		if (vessel <= this.numBins) return
+		if (this.getStonesInVessel(vessel) === 0) return
+		this.play(vessel)
+	}
+
+	private checkForVictory() {
 		let southScore = 0
 		let northScore = 0
 		let southClear = true

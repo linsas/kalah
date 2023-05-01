@@ -8,17 +8,13 @@ interface IClient {
 	getPayload(): any
 }
 
-class SouthPlayer implements IClient {
+class SouthPerspective implements IClient {
 	private game: KalahGame
 	constructor(game: KalahGame) {
 		this.game = game
 	}
 	play(vessel: number) {
-		if (this.game.getGameState() !== KalahGameState.SOUTH_TURN) return
-		if (vessel > this.game.numBins) return
-		if (this.game.getStonesInVessel(vessel) === 0) return
-
-		this.game.play(vessel)
+		this.game.playSouth(vessel)
 	}
 	getPayload() {
 		const gameState = this.game.getGameState()
@@ -33,7 +29,7 @@ class SouthPlayer implements IClient {
 	}
 }
 
-class NorthPlayer implements IClient {
+class NorthPerspective implements IClient {
 	private game: KalahGame
 	constructor(game: KalahGame) {
 		this.game = game
@@ -42,12 +38,8 @@ class NorthPlayer implements IClient {
 		return (this.game.numBins + 1 + vessel) % ((this.game.numBins + 1) * 2)
 	}
 	play(vessel: number) {
-		if (this.game.getGameState() !== KalahGameState.NORTH_TURN) return
 		vessel = this.rotateVessel(vessel)
-		if (vessel <= this.game.numBins) return
-		if (this.game.getStonesInVessel(vessel) === 0) return
-
-		this.game.play(vessel)
+		this.game.playNorth(vessel)
 	}
 	getPayload() {
 		const board = this.game.getBoard()
@@ -89,4 +81,4 @@ class Spectator implements IClient {
 	}
 }
 
-export { IClient, SouthPlayer, NorthPlayer, Spectator }
+export { IClient, SouthPerspective as SouthPlayer, NorthPerspective as NorthPlayer, Spectator }
