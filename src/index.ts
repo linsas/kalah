@@ -2,7 +2,7 @@ import express from 'express'
 import http from 'http'
 import { Server as SocketioServer } from 'socket.io'
 
-import { IClient, NorthPlayer, SouthPlayer, Spectator } from './Client.js'
+import { IPerspective, IPlayer, NorthPlayer, SouthPlayer, Spectator } from './Client.js'
 import { KalahGame } from './KalahGame.js'
 
 const websiteRoot = './web'
@@ -33,21 +33,25 @@ let north: string | null = null
 
 let game = new KalahGame()
 
-let southClient = new SouthPlayer(game)
-let northClient = new NorthPlayer(game)
-let spectatorClient = new Spectator(game)
+let southPlayer = new SouthPlayer(game)
+let northPlayer = new NorthPlayer(game)
+let spectator = new Spectator(game)
 
-const getClientProxy = (socketId: string): IClient => {
+const getPlayer = (socketId: string): IPlayer|null => {
 	if (socketId === south) {
-		return southClient
+		return southPlayer
 	} else if (socketId === north) {
-		return northClient
+		return northPlayer
 	}
-	return spectatorClient
+	return null
+}
+
+const getPerspective = (socketId: string): IPerspective => {
+	return getPlayer(socketId) ?? spectator
 }
 
 const updateClient = (clientId: string) => {
-	const playerProxy = getClientProxy(clientId)
+	const playerProxy = getPerspective(clientId)
 	const payload = playerProxy.getPayload()
 	ioServer.to(clientId).emit('update', payload)
 }
@@ -115,7 +119,9 @@ ioServer.on('connection', (socket) => {
 	})
 
 	socket.on('play', (vessel) => {
-		const player = getClientProxy(socket.id)
+		const player = getPlayer(socket.id)
+		if (player == null) return
+
 		player.play(vessel)
 
 		updateAllClients()
@@ -127,9 +133,9 @@ ioServer.on('connection', (socket) => {
 		south = null
 		north = null
 		game = new KalahGame()
-		southClient = new SouthPlayer(game)
-		northClient = new NorthPlayer(game)
-		spectatorClient = new Spectator(game)
+		southPlayer = new SouthPlayer(game)
+		northPlayer = new NorthPlayer(game)
+		spectator = new Spectator(game)
 		updateAllClients()
 	})
 

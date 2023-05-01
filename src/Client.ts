@@ -1,14 +1,27 @@
 import { KalahGame, KalahGameState } from "./KalahGame.js"
 
-interface IClient {
-	/** Act on the client's request to play a given vessel. */
-	play(vessel: number): void
-
+interface IPerspective {
 	/** Get the payload for that client's perspective */
-	getPayload(): any
+	getPayload(): Payload
 }
 
-class SouthPerspective implements IClient {
+interface IPlayer extends IPerspective {
+	/** Act on the client's request to play a given vessel. */
+	play(vessel: number): void
+}
+
+enum ClientRole {
+	PLAYER = 'player',
+	SPECTATOR = 'spectator',
+}
+
+interface Payload {
+	board: Array<number>
+	gameState: number
+	role: ClientRole
+}
+
+class SouthPlayer implements IPlayer {
 	private game: KalahGame
 	constructor(game: KalahGame) {
 		this.game = game
@@ -22,19 +35,19 @@ class SouthPerspective implements IClient {
 		const payload = {
 			board: this.game.getBoard(),
 			gameState: gameState,
-			role: 'player',
+			role: ClientRole.PLAYER,
 		}
 
 		return payload
 	}
 }
 
-class NorthPerspective implements IClient {
+class NorthPlayer implements IPlayer {
 	private game: KalahGame
 	constructor(game: KalahGame) {
 		this.game = game
 	}
-	rotateVessel(vessel: number) {
+	private rotateVessel(vessel: number) {
 		return (this.game.numBins + 1 + vessel) % ((this.game.numBins + 1) * 2)
 	}
 	play(vessel: number) {
@@ -56,29 +69,26 @@ class NorthPerspective implements IClient {
 		const payload = {
 			board: northSide.concat(southSide),
 			gameState: clientState,
-			role: 'player',
+			role: ClientRole.PLAYER,
 		}
 
 		return payload
 	}
 }
 
-class Spectator implements IClient {
+class Spectator implements IPerspective {
 	private game: KalahGame
 	constructor(game: KalahGame) {
 		this.game = game
-	}
-	play(_vessel: number) {
-		return
 	}
 	getPayload() {
 		const payload = {
 			board: this.game.getBoard(),
 			gameState: this.game.getGameState(),
-			role: 'spectator',
+			role: ClientRole.SPECTATOR,
 		}
 		return payload
 	}
 }
 
-export { IClient, SouthPerspective as SouthPlayer, NorthPerspective as NorthPlayer, Spectator }
+export { IPerspective, IPlayer, SouthPlayer, NorthPlayer, Spectator }
