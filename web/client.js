@@ -2,7 +2,8 @@ const numBins = 6
 const stoneClasses = ['common', 'uncommon', 'rare', 'veryrare', 'ultrarare']
 
 const socket = io({
-	autoConnect: false
+	autoConnect: false,
+	reconnection: false
 })
 
 const resetBoardStyles = () => {
