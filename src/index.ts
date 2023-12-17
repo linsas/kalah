@@ -1,6 +1,6 @@
 import { Server as SocketioServer } from 'socket.io'
+import { getNorthPerspectivePayload, getSouthPerspectivePayload, getSpectatorPerspectivePayload, Payload } from './ClientPerspective.js'
 
-import { IPerspective, IPlayer, NorthPlayer, SouthPlayer, Spectator } from './Client.js'
 import { KalahGame } from './KalahGame.js'
 
 import { httpServer } from './KalahWebServer.js'
@@ -12,26 +12,18 @@ let north: string | null = null
 
 let game = new KalahGame()
 
-let southPlayer = new SouthPlayer(game)
-let northPlayer = new NorthPlayer(game)
-let spectator = new Spectator(game)
-
-const getPlayer = (socketId: string): IPlayer|null => {
+const getPayload = (socketId: string): Payload => {
 	if (socketId === south) {
-		return southPlayer
+		return getSouthPerspectivePayload(game)
 	} else if (socketId === north) {
-		return northPlayer
+		return getNorthPerspectivePayload(game)
+	} else {
+		return getSpectatorPerspectivePayload(game)
 	}
-	return null
-}
-
-const getPerspective = (socketId: string): IPerspective => {
-	return getPlayer(socketId) ?? spectator
 }
 
 const updateClient = (clientId: string) => {
-	const playerProxy = getPerspective(clientId)
-	const payload = playerProxy.getPayload()
+	const payload = getPayload(clientId)
 	ioServer.to(clientId).emit('update', payload)
 }
 
@@ -41,6 +33,7 @@ const updateAllClients = async () => {
 		updateClient(client.id)
 	}
 }
+
 
 const ioServer = new SocketioServer(httpServer)
 
@@ -98,10 +91,14 @@ ioServer.on('connection', (socket) => {
 	})
 
 	socket.on('play', (vessel) => {
-		const player = getPlayer(socket.id)
-		if (player == null) return
-
-		player.play(vessel)
+		if (socket.id === south) {
+			game.playSouth(vessel)
+		} else if (socket.id === north) {
+			const rotatedVessel = (game.numBins + 1 + vessel) % ((game.numBins + 1) * 2)
+			game.playNorth(rotatedVessel)
+		} else {
+			return
+		}
 
 		updateAllClients()
 	})
@@ -112,9 +109,6 @@ ioServer.on('connection', (socket) => {
 		south = null
 		north = null
 		game = new KalahGame()
-		southPlayer = new SouthPlayer(game)
-		northPlayer = new NorthPlayer(game)
-		spectator = new Spectator(game)
 		updateAllClients()
 	})
 
