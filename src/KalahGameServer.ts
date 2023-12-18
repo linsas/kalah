@@ -4,8 +4,8 @@ import { KalahGame } from './KalahGame.js';
 import { httpServerType } from './KalahWebServer.js';
 
 interface ClientData {
-	timeJoined: Date,
-	timeLastAction: Date,
+	idleTimer: NodeJS.Timeout | null,
+	disconnectTimer: NodeJS.Timeout | null,
 }
 
 export function startKalahGameServer(httpServer: httpServerType) {
@@ -16,6 +16,40 @@ export function startKalahGameServer(httpServer: httpServerType) {
 	let north: string | null = null
 
 	const ioServer = new SocketioServer(httpServer)
+
+	const idleTimeoutMs: number | null = 5 * 60 * 1000
+	const disconnectTimeoutMs: number | null = 15 * 60 * 1000
+
+	function clearIdleTimer(socketId: string) {
+		const client = clients.get(socketId)
+		if (client == null) return
+		if (client.idleTimer != null) clearTimeout(client.idleTimer)
+	}
+
+	function resetIdleTimer(socketId: string) {
+		if (idleTimeoutMs == null) return
+		const client = clients.get(socketId)
+		if (client == null) return
+		if (client.idleTimer != null) clearTimeout(client.idleTimer)
+		client.idleTimer = setTimeout(() => {
+			console.log('client moved to spectator %s', socketId)
+			if (south === socketId) south = null
+			if (north === socketId) north = null
+			updateClient(socketId)
+		}, idleTimeoutMs)
+	}
+
+	function resetDisconnectTimer(socketId: string) {
+		if (disconnectTimeoutMs == null) return
+		const client = clients.get(socketId)
+		if (client == null) return
+		if (client.disconnectTimer != null) clearTimeout(client.disconnectTimer)
+		client.disconnectTimer = setTimeout(() => {
+			console.log('client timeout %s', socketId)
+			ioServer.to(socketId).disconnectSockets()
+		}, disconnectTimeoutMs)
+	}
+
 
 	function getPayload(socketId: string): Payload {
 		if (socketId === south) {
@@ -41,10 +75,11 @@ export function startKalahGameServer(httpServer: httpServerType) {
 
 	function onConnect(socketId: string) {
 		clients.set(socketId, {
-			timeJoined: new Date,
-			timeLastAction: new Date,
+			idleTimer: null,
+			disconnectTimer: null,
 		})
 		updateClient(socketId)
+		resetDisconnectTimer(socketId)
 		console.log(socketId + ' connected')
 	}
 
@@ -55,11 +90,15 @@ export function startKalahGameServer(httpServer: httpServerType) {
 			if (south === null) {
 				south = socketId
 				updateClient(socketId)
+				resetIdleTimer(socketId)
+				resetDisconnectTimer(socketId)
 				return
 			}
 			if (north === null) {
 				north = socketId
 				updateClient(socketId)
+				resetIdleTimer(socketId)
+				resetDisconnectTimer(socketId)
 				return
 			}
 			console.log('No player slots for ' + socketId)
@@ -68,27 +107,31 @@ export function startKalahGameServer(httpServer: httpServerType) {
 			if (socketId === south) {
 				south = null
 				updateClient(socketId)
+				clearIdleTimer(socketId)
+				resetDisconnectTimer(socketId)
 				return
 			}
 			if (socketId === north) {
 				north = null
 				updateClient(socketId)
+				clearIdleTimer(socketId)
+				resetDisconnectTimer(socketId)
 				return
 			}
 		}
 	}
 
 	function onPlay(socketId: string, vessel: number) {
-		if (socketId !== south && socketId !== north) return
-
 		let role = socketId
 		let absoluteVessel = vessel
 
-		if (socketId === south) {
-			role = 'south'
+		if (!game.isNorthTurn()) {
+			if (socketId !== south) return
+			role = 'South'
 			game.playSouth(absoluteVessel = getSouthPerspectiveVessel(vessel, game))
-		} else if (socketId === north) {
-			role = 'north'
+		} else {
+			if (socketId !== north) return
+			role = 'North'
 			game.playNorth(absoluteVessel = getNorthPerspectiveVessel(vessel, game))
 		}
 
@@ -105,18 +148,27 @@ export function startKalahGameServer(httpServer: httpServerType) {
 				console.log('it\'s a tie!')
 		}
 
+		resetIdleTimer(socketId)
+		resetDisconnectTimer(socketId)
 		updateAllClients()
 	}
 
 	function onReset(socketId: string) {
 		console.log(socketId + ' reset the game!')
 		game = new KalahGame()
+		// todo: reset north/south and idle timers?
 		updateAllClients()
 	}
 
 	function onDisconnect(socketId: string) {
 		if (south === socketId) south = null
 		if (north === socketId) north = null
+
+		const client = clients.get(socketId)
+		if (client == null) return
+		if (client.idleTimer != null) clearTimeout(client.idleTimer)
+		if (client.disconnectTimer != null) clearTimeout(client.disconnectTimer)
+
 		clients.delete(socketId)
 		console.log(socketId + ' disconnected')
 	}
