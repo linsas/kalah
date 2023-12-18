@@ -45,6 +45,7 @@ export function startKalahGameServer(httpServer: httpServerType) {
 			timeLastAction: new Date,
 		})
 		updateClient(socketId)
+		console.log(socketId + ' connected')
 	}
 
 	function onChangeRole(socketId: string, bePlayer: boolean) {
@@ -80,11 +81,19 @@ export function startKalahGameServer(httpServer: httpServerType) {
 	function onPlay(socketId: string, vessel: number) {
 		if (socketId !== south && socketId !== north) return
 
+		let role = socketId
+		let absoluteVessel = vessel
+
 		if (socketId === south) {
-			game.playSouth(getSouthPerspectiveVessel(vessel, game))
+			role = 'south'
+			game.playSouth(absoluteVessel = getSouthPerspectiveVessel(vessel, game))
 		} else if (socketId === north) {
-			game.playNorth(getNorthPerspectiveVessel(vessel, game))
+			role = 'north'
+			game.playNorth(absoluteVessel = getNorthPerspectiveVessel(vessel, game))
 		}
+
+		const [southScore, northScore] = game.getScores()
+		console.log('%s played (%d); score is %d ; %d', role, absoluteVessel, southScore, northScore)
 
 		if (game.isGameOver()) {
 			const [southScore, northScore] = game.getScores()
@@ -92,10 +101,8 @@ export function startKalahGameServer(httpServer: httpServerType) {
 				console.log('south player wins!')
 			else if (southScore < northScore)
 				console.log('north player wins!')
-			else if (southScore === northScore)
-				console.log('it\'s a tie!')
 			else
-				console.log('game over (unspecified outcome)')
+				console.log('it\'s a tie!')
 		}
 
 		updateAllClients()
@@ -111,6 +118,7 @@ export function startKalahGameServer(httpServer: httpServerType) {
 		if (south === socketId) south = null
 		if (north === socketId) north = null
 		clients.delete(socketId)
+		console.log(socketId + ' disconnected')
 	}
 
 
