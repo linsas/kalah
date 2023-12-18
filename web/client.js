@@ -19,18 +19,24 @@ socket.on('disconnect', () => {
 })
 
 socket.on('update', (payload) => {
-	const state = payload.gameState
-
-	const isPlayer = payload.role === 'player'
 
 	resetBoardStyles()
+
+	const isPlayer = payload.role === 'player'
 	// document.querySelector('div#board').classList.add(isPlayer ? 'player' : 'spectator')
 
-	if (state === 0) document.querySelector('div#board').classList.add(isPlayer ? 'playerTurn' : 'southTurn')
-	if (state === 1) document.querySelector('div#board').classList.add('northTurn')
-	if (state === 2) document.querySelector('div#board').classList.add('southVictory')
-	if (state === 3) document.querySelector('div#board').classList.add('northVictory')
-	if (state === 4) document.querySelector('div#board').classList.add('tie')
+	if (!payload.isGameOver) {
+
+		if (payload.isNorthTurn)
+			document.querySelector('div#board').classList.add('northTurn')
+		else
+			document.querySelector('div#board').classList.add(isPlayer ? 'playerTurn' : 'southTurn')
+
+	} else {
+		if (payload.southScore > payload.northScore) document.querySelector('div#board').classList.add('southVictory')
+		else if (payload.southScore < payload.northScore) document.querySelector('div#board').classList.add('northVictory')
+		else if (payload.southScore === payload.northScore) document.querySelector('div#board').classList.add('tie')
+	}
 
 	const board = payload.board
 	const vessels = document.querySelectorAll('.vessel')

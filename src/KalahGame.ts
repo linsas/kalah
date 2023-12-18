@@ -1,15 +1,7 @@
-enum KalahGameState {
-	SOUTH_TURN = 0,
-	NORTH_TURN = 1,
-	SOUTH_VICTORY = 2,
-	NORTH_VICTORY = 3,
-	TIE = 4,
-	GAME_OVER = 5,
-}
-
 class KalahGame {
 	private board: number[]
-	private gameState: KalahGameState
+	private northTurn: boolean
+	private gameOver: boolean
 
 	readonly numBins: number
 	readonly maxVesselIndex: number
@@ -21,7 +13,8 @@ class KalahGame {
 		this.maxVesselIndex = 2 * numBins + 1
 
 		this.numBins = numBins
-		this.gameState = KalahGameState.SOUTH_TURN
+		this.northTurn = false
+		this.gameOver = false
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
 		this.board[this.numBins] = 0
 		this.board[this.maxVesselIndex] = 0
@@ -32,13 +25,34 @@ class KalahGame {
 		return this.board.slice()
 	}
 
-	/** Returns the state of the game (@see KalahGameState) */
-	getGameState() {
-		return this.gameState
+	/** Returns whether the game is over */
+	isGameOver(): boolean {
+		return this.gameOver
+	}
+
+	/** Returns whether it is the north player's turn */
+	isNorthTurn(): boolean {
+		return this.northTurn
+	}
+
+	/** Returns the number of stones in each players' vessels */
+	getScores() {
+		let southScore = 0
+		let northScore = 0
+		for (let index = 0; index < this.board.length; index++) {
+			const numStones = this.board[index]
+			if (index <= this.numBins) {
+				southScore += numStones
+			} else {
+				northScore += numStones
+			}
+		}
+
+		return [southScore, northScore]
 	}
 
 	/** Gets the number of stones in a vessel */
-	getStonesInVessel(vessel: number) {
+	private getStonesInVessel(vessel: number) {
 		if (vessel < 0) throw null
 		if (vessel > this.maxVesselIndex) throw null
 		return this.board[vessel]
@@ -48,10 +62,8 @@ class KalahGame {
 		if (vessel < 0) throw null
 		if (vessel > this.maxVesselIndex) throw null
 
-		const isNorthPlaying = this.gameState === KalahGameState.NORTH_TURN
-
-		const ownStore = isNorthPlaying ? this.maxVesselIndex : this.numBins
-		const opponentStore = isNorthPlaying ? this.numBins : this.maxVesselIndex
+		const ownStore = this.northTurn ? this.maxVesselIndex : this.numBins
+		const opponentStore = this.northTurn ? this.numBins : this.maxVesselIndex
 
 		let hand = this.board[vessel]
 		this.board[vessel] = 0
@@ -73,43 +85,39 @@ class KalahGame {
 		}
 
 		if (vessel !== ownStore) {
-			this.gameState = isNorthPlaying ? KalahGameState.SOUTH_TURN : KalahGameState.NORTH_TURN
-		} else {
-			this.gameState = isNorthPlaying ? KalahGameState.NORTH_TURN : KalahGameState.SOUTH_TURN
+			this.northTurn = !this.northTurn
 		}
 
 		this.checkForVictory()
 	}
 
 	playSouth(vessel: number) {
-		if (this.getGameState() !== KalahGameState.SOUTH_TURN) return
+		if (this.gameOver) return
+		if (this.northTurn) return
 		if (vessel > this.numBins) return
 		if (this.getStonesInVessel(vessel) === 0) return
 		this.play(vessel)
 	}
 	playNorth(vessel: number) {
-		if (this.getGameState() !== KalahGameState.NORTH_TURN) return
+		if (this.gameOver) return
+		if (!this.northTurn) return
 		if (vessel <= this.numBins) return
 		if (this.getStonesInVessel(vessel) === 0) return
 		this.play(vessel)
 	}
 
 	private checkForVictory() {
-		let southScore = 0
-		let northScore = 0
 		let southClear = true
 		let northClear = true
 		for (let index = 0; index < this.board.length; index++) {
 			const numStones = this.board[index]
 			if (index <= this.numBins) {
 				// south side
-				southScore += numStones
 				if (numStones > 0 && index !== this.numBins) {
 					southClear = false
 				}
 			} else {
 				// north side
-				northScore += numStones
 				if (numStones > 0 && index !== this.maxVesselIndex) {
 					northClear = false
 				}
@@ -117,15 +125,9 @@ class KalahGame {
 		}
 
 		if (southClear || northClear) {
-			if (southScore > northScore) {
-				this.gameState = KalahGameState.SOUTH_VICTORY
-			} else if (northScore > southScore) {
-				this.gameState = KalahGameState.NORTH_VICTORY
-			} else {
-				this.gameState = KalahGameState.TIE
-			}
+			this.gameOver = true
 		}
 	}
 }
 
-export { KalahGame, KalahGameState }
+export { KalahGame }

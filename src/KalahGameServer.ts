@@ -1,6 +1,6 @@
 import { Server as SocketioServer } from 'socket.io'
-import { getNorthPerspectivePayload, getSouthPerspectivePayload, getSpectatorPerspectivePayload, Payload } from './ClientPerspective.js';
-import { KalahGame, KalahGameState } from './KalahGame.js';
+import { getNorthPerspectivePayload, getNorthPerspectiveVessel, getSouthPerspectivePayload, getSouthPerspectiveVessel, getSpectatorPerspectivePayload, Payload } from './ClientPerspective.js';
+import { KalahGame } from './KalahGame.js';
 import type { httpServer } from './KalahWebServer.js';
 
 interface ClientData {
@@ -81,17 +81,22 @@ export function startKalahGameServer(webServer: typeof httpServer) {
 		if (socketId !== south && socketId !== north) return
 
 		if (socketId === south) {
-			game.playSouth(vessel)
+			game.playSouth(getSouthPerspectiveVessel(vessel, game))
 		} else if (socketId === north) {
-			const rotatedVessel = (game.numBins + 1 + vessel) % ((game.numBins + 1) * 2)
-			game.playNorth(rotatedVessel)
+			game.playNorth(getNorthPerspectiveVessel(vessel, game))
 		}
 
-		const gameState = game.getGameState()
-		if (gameState === KalahGameState.SOUTH_VICTORY) console.log('south player wins!')
-		if (gameState === KalahGameState.NORTH_VICTORY) console.log('north player wins!')
-		if (gameState === KalahGameState.TIE) console.log('it\'s a tie!')
-		if (gameState === KalahGameState.GAME_OVER) console.log('game over (unspecified outcome)')
+		if (game.isGameOver()) {
+			const [southScore, northScore] = game.getScores()
+			if (southScore > northScore)
+				console.log('south player wins!')
+			else if (southScore < northScore)
+				console.log('north player wins!')
+			else if (southScore === northScore)
+				console.log('it\'s a tie!')
+			else
+				console.log('game over (unspecified outcome)')
+		}
 
 		updateAllClients()
 	}
