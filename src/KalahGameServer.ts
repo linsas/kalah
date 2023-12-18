@@ -1,21 +1,21 @@
 import { Server as SocketioServer } from 'socket.io'
 import { getNorthPerspectivePayload, getNorthPerspectiveVessel, getSouthPerspectivePayload, getSouthPerspectiveVessel, getSpectatorPerspectivePayload, Payload } from './ClientPerspective.js';
 import { KalahGame } from './KalahGame.js';
-import type { httpServer } from './KalahWebServer.js';
+import { httpServerType } from './KalahWebServer.js';
 
 interface ClientData {
 	timeJoined: Date,
 	timeLastAction: Date,
 }
 
-export function startKalahGameServer(webServer: typeof httpServer) {
+export function startKalahGameServer(httpServer: httpServerType) {
 	let game: KalahGame = new KalahGame()
 	let clients: Map<string, ClientData> = new Map()
 
 	let south: string | null = null
 	let north: string | null = null
 
-	const ioServer = new SocketioServer(webServer)
+	const ioServer = new SocketioServer(httpServer)
 
 	function getPayload(socketId: string): Payload {
 		if (socketId === south) {

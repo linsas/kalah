@@ -1,25 +1,23 @@
 import express from 'express'
-import http from 'http'
+import http from 'node:http'
 
 const websiteRoot = './web'
 
-const expressApp = express()
-const httpServer = http.createServer(expressApp)
+export type httpServerType = http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
 
-expressApp.get('/', (_req, res) => {
-	res.sendFile('/index.html', { root: websiteRoot })
-})
-expressApp.get('/client.js', (_req, res) => {
-	res.sendFile('/client.js', { root: websiteRoot })
-})
-expressApp.get('/styles.css', (_req, res) => {
-	res.sendFile('/styles.css', { root: websiteRoot })
-})
+export function createHttpServer(): httpServerType {
+	const expressApp = express()
+	const httpServer = http.createServer(expressApp)
 
-const PORT = 9000
+	expressApp.get('/', (_req, res) => {
+		res.sendFile('/index.html', { root: websiteRoot })
+	})
+	expressApp.get('/client.js', (_req, res) => {
+		res.sendFile('/client.js', { root: websiteRoot })
+	})
+	expressApp.get('/styles.css', (_req, res) => {
+		res.sendFile('/styles.css', { root: websiteRoot })
+	})
 
-httpServer.listen(PORT, () => {
-	console.log('Go to http://localhost:' + PORT)
-})
-
-export { httpServer }
+	return httpServer
+}
