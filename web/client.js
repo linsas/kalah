@@ -1,6 +1,8 @@
 const numBins = 6
 const stoneClasses = ['common', 'uncommon', 'rare', 'veryrare', 'ultrarare']
 
+let previousRole = null
+
 const socket = io({
 	autoConnect: false,
 	reconnection: false
@@ -14,6 +16,7 @@ socket.on('connect', () => {
 	document.querySelector('div#board').classList.remove('offline')
 	document.querySelector('button#connect').disabled = false
 	document.querySelector('button#connect').textContent = 'Disconnect'
+	document.querySelector('button#role').disabled = false
 })
 socket.on('connect_error', (error) => {
 	// console.log(error)
@@ -21,12 +24,15 @@ socket.on('connect_error', (error) => {
 	document.querySelector('button#connect').textContent = 'Connect'
 })
 socket.on('disconnect', () => {
+	previousRole = null
 	resetBoardStyles()
 	document.querySelector('div#board').classList.add('offline')
 	document.querySelector('span#role').textContent = 'You are not connected.'
 	document.querySelector('span#turn').textContent = ''
 	document.querySelector('button#connect').disabled = false
 	document.querySelector('button#connect').textContent = 'Connect'
+	document.querySelector('button#role').textContent = 'Play'
+	document.querySelector('button#role').disabled = true
 })
 
 socket.on('update', (payload) => {
@@ -37,6 +43,7 @@ socket.on('update', (payload) => {
 	const isPlayer = payload.role === 'player'
 
 	document.querySelector('span#role').textContent = isPlayer ? 'You are playing.' : 'You are spectating.'
+	document.querySelector('button#role').textContent = !isPlayer ? 'Play' : 'Spectate'
 
 	if (!payload.isGameOver) {
 		if (payload.isNorthTurn) {
@@ -66,7 +73,8 @@ socket.on('update', (payload) => {
 		label.textContent = board[index]
 
 		const stones = vessel.querySelectorAll('div.stone')
-		if (stones.length == board[index]) continue
+
+		if (previousRole === payload.role && stones.length == board[index]) continue
 
 		stones.forEach(e => e.remove())
 		for (let j = 0; j < board[index]; j++) {
@@ -76,6 +84,7 @@ socket.on('update', (payload) => {
 			vessel.append(node)
 		}
 	}
+	previousRole = payload.role
 })
 
 const handleClickVessel = (vessel) => {
@@ -93,8 +102,8 @@ const handleClickConnect = () => {
 	}
 }
 
-const handleClickRole = (bePlayer) => {
-	socket.emit('role', bePlayer)
+const handleClickRole = () => {
+	socket.emit('role', previousRole !== 'player')
 }
 
 const handleClickReset = () => {
@@ -108,6 +117,5 @@ for (let index = 0; index < vessels.length; index++) {
 }
 
 document.querySelector('button#connect').addEventListener('click', handleClickConnect)
-document.querySelector('button#play').addEventListener('click', () => handleClickRole(true))
-document.querySelector('button#spectate').addEventListener('click', () => handleClickRole(false))
+document.querySelector('button#role').addEventListener('click', () => handleClickRole())
 document.querySelector('button#reset').addEventListener('click', handleClickReset)
