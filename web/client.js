@@ -12,10 +12,21 @@ const resetBoardStyles = () => {
 
 socket.on('connect', () => {
 	document.querySelector('div#board').classList.remove('offline')
+	document.querySelector('button#connect').disabled = false
+	document.querySelector('button#connect').textContent = 'Disconnect'
+})
+socket.on('connect_error', (error) => {
+	// console.log(error)
+	document.querySelector('button#connect').disabled = false
+	document.querySelector('button#connect').textContent = 'Connect'
 })
 socket.on('disconnect', () => {
 	resetBoardStyles()
 	document.querySelector('div#board').classList.add('offline')
+	document.querySelector('span#role').textContent = 'You are not connected.'
+	document.querySelector('span#turn').textContent = ''
+	document.querySelector('button#connect').disabled = false
+	document.querySelector('button#connect').textContent = 'Connect'
 })
 
 socket.on('update', (payload) => {
@@ -71,14 +82,15 @@ const handleClickVessel = (vessel) => {
 	socket.emit('play', vessel)
 }
 
-const handleConnect = () => {
-	socket.connect()
-}
-
-const handleDisconnect = () => {
-	socket.disconnect()
-	document.querySelector('span#role').textContent = 'You are not connected.'
-	document.querySelector('span#turn').textContent = ''
+const handleClickConnect = () => {
+	document.querySelector('button#connect').disabled = true
+	if (socket.disconnected) {
+		document.querySelector('button#connect').textContent = 'Connecting...'
+		socket.connect()
+	} else {
+		document.querySelector('button#connect').textContent = 'Disconnecting...'
+		socket.disconnect()
+	}
 }
 
 const handleClickRole = (bePlayer) => {
@@ -95,8 +107,7 @@ for (let index = 0; index < vessels.length; index++) {
 	vessels[index].addEventListener('click', () => handleClickVessel(index))
 }
 
-document.querySelector('button#connect').addEventListener('click', handleConnect)
-document.querySelector('button#disconnect').addEventListener('click', handleDisconnect)
+document.querySelector('button#connect').addEventListener('click', handleClickConnect)
 document.querySelector('button#play').addEventListener('click', () => handleClickRole(true))
 document.querySelector('button#spectate').addEventListener('click', () => handleClickRole(false))
 document.querySelector('button#reset').addEventListener('click', handleClickReset)
