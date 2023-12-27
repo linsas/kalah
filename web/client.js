@@ -106,10 +106,6 @@ const handleClickRole = () => {
 	socket.emit('role', previousRole !== 'player')
 }
 
-const handleClickReset = () => {
-	socket.emit('reset')
-}
-
 
 const vessels = document.querySelectorAll('#board > .vessel')
 for (let index = 0; index < vessels.length; index++) {
@@ -118,4 +114,3 @@ for (let index = 0; index < vessels.length; index++) {
 
 document.querySelector('button#connect').addEventListener('click', handleClickConnect)
 document.querySelector('button#role').addEventListener('click', () => handleClickRole())
-document.querySelector('button#reset').addEventListener('click', handleClickReset)

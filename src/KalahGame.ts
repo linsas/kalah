@@ -1,3 +1,6 @@
+const numBins = 6
+const startingStones = 4
+
 class KalahGame {
 	private board: number[]
 	private northTurn: boolean
@@ -7,12 +10,9 @@ class KalahGame {
 	readonly maxVesselIndex: number
 
 	constructor() {
-		const numBins = 6
-		const startingStones = 4
-
+		this.numBins = numBins
 		this.maxVesselIndex = 2 * numBins + 1
 
-		this.numBins = numBins
 		this.northTurn = false
 		this.gameOver = false
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
@@ -127,6 +127,15 @@ class KalahGame {
 		if (southClear || northClear) {
 			this.gameOver = true
 		}
+	}
+
+	reset()
+	{
+		this.northTurn = false
+		this.gameOver = false
+		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
+		this.board[this.numBins] = 0
+		this.board[this.maxVesselIndex] = 0
 	}
 }
 

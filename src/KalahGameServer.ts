@@ -140,23 +140,23 @@ export function startKalahGameServer(httpServer: httpServerType) {
 
 		if (game.isGameOver()) {
 			const [southScore, northScore] = game.getScores()
-			if (southScore > northScore)
+			if (southScore > northScore){
 				console.log('south player wins!')
-			else if (southScore < northScore)
+			}else if (southScore < northScore){
 				console.log('north player wins!')
-			else
+			}else{
 				console.log('it\'s a tie!')
+			}
+			setTimeout(() => {
+				north = null
+				south = null
+				game.reset()
+				updateAllClients()
+			}, 10 * 1000)
 		}
 
 		resetIdleTimer(socketId)
 		resetDisconnectTimer(socketId)
-		updateAllClients()
-	}
-
-	function onReset(socketId: string) {
-		console.log(socketId + ' reset the game!')
-		game = new KalahGame()
-		// todo: reset north/south and idle timers?
 		updateAllClients()
 	}
 
@@ -181,9 +181,6 @@ export function startKalahGameServer(httpServer: httpServerType) {
 		})
 		socket.on('play', (vessel: number) => {
 			onPlay(socket.id, vessel)
-		})
-		socket.on('reset', () => {
-			onReset(socket.id)
 		})
 		socket.on('disconnect', () => {
 			onDisconnect(socket.id)
