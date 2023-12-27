@@ -19,23 +19,31 @@ socket.on('disconnect', () => {
 })
 
 socket.on('update', (payload) => {
+	// console.log(payload)
 
 	resetBoardStyles()
 
 	const isPlayer = payload.role === 'player'
-	// document.querySelector('div#board').classList.add(isPlayer ? 'player' : 'spectator')
+
+	document.querySelector('span#role').textContent = isPlayer ? 'You are playing.' : 'You are spectating.'
 
 	if (!payload.isGameOver) {
-
-		if (payload.isNorthTurn)
+		if (payload.isNorthTurn) {
 			document.querySelector('div#board').classList.add('northTurn')
-		else
+			document.querySelector('span#turn').textContent = isPlayer ? 'It is the opponent\'s turn.' : 'It is the north player\'s turn.'
+		} else {
 			document.querySelector('div#board').classList.add(isPlayer ? 'playerTurn' : 'southTurn')
-
+			document.querySelector('span#turn').textContent = isPlayer ? 'It is your turn.' : 'It is the south player\'s turn.'
+		}
 	} else {
-		if (payload.southScore > payload.northScore) document.querySelector('div#board').classList.add('southVictory')
-		else if (payload.southScore < payload.northScore) document.querySelector('div#board').classList.add('northVictory')
-		else if (payload.southScore === payload.northScore) document.querySelector('div#board').classList.add('tie')
+		if (payload.southScore > payload.northScore) {
+			document.querySelector('div#board').classList.add('southVictory')
+		} else if (payload.southScore < payload.northScore) {
+			document.querySelector('div#board').classList.add('northVictory')
+		} else {
+			document.querySelector('div#board').classList.add('tie')
+		}
+		document.querySelector('span#turn').textContent = 'The game is over.'
 	}
 
 	const board = payload.board
@@ -69,6 +77,8 @@ const handleConnect = () => {
 
 const handleDisconnect = () => {
 	socket.disconnect()
+	document.querySelector('span#role').textContent = 'You are not connected.'
+	document.querySelector('span#turn').textContent = ''
 }
 
 const handleClickRole = (bePlayer) => {
