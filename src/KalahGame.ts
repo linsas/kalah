@@ -3,7 +3,7 @@ const startingStones = 4
 
 class KalahGame {
 	private board: number[]
-	private northTurn: boolean
+	private southTurn: boolean
 	private gameOver: boolean
 
 	readonly numBins: number
@@ -13,7 +13,7 @@ class KalahGame {
 		this.numBins = numBins
 		this.maxVesselIndex = 2 * numBins + 1
 
-		this.northTurn = false
+		this.southTurn = true
 		this.gameOver = false
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
 		this.board[this.numBins] = 0
@@ -30,9 +30,9 @@ class KalahGame {
 		return this.gameOver
 	}
 
-	/** Returns whether it is the north player's turn */
-	isNorthTurn(): boolean {
-		return this.northTurn
+	/** Returns whether it is the south player's turn */
+	isSouthTurn(): boolean {
+		return this.southTurn
 	}
 
 	/** Returns the number of stones in each players' vessels */
@@ -62,8 +62,8 @@ class KalahGame {
 		if (vessel < 0) throw null
 		if (vessel > this.maxVesselIndex) throw null
 
-		const ownStore = this.northTurn ? this.maxVesselIndex : this.numBins
-		const opponentStore = this.northTurn ? this.numBins : this.maxVesselIndex
+		const ownStore = this.southTurn ? this.numBins : this.maxVesselIndex
+		const opponentStore = this.southTurn ? this.maxVesselIndex : this.numBins
 
 		let hand = this.board[vessel]
 		this.board[vessel] = 0
@@ -85,25 +85,29 @@ class KalahGame {
 		}
 
 		if (vessel !== ownStore) {
-			this.northTurn = !this.northTurn
+			this.southTurn = !this.southTurn
 		}
 
 		this.checkForVictory()
 	}
 
 	playSouth(vessel: number) {
-		if (this.gameOver) return
-		if (this.northTurn) return
-		if (vessel > this.numBins) return
-		if (this.getStonesInVessel(vessel) === 0) return
+		if (this.gameOver) return false
+		if (!this.southTurn) return false
+		if (vessel > this.numBins) return false
+		if (this.getStonesInVessel(vessel) === 0) return false
+
 		this.play(vessel)
+		return true
 	}
 	playNorth(vessel: number) {
-		if (this.gameOver) return
-		if (!this.northTurn) return
-		if (vessel <= this.numBins) return
-		if (this.getStonesInVessel(vessel) === 0) return
+		if (this.gameOver) return false
+		if (this.southTurn) return false
+		if (vessel <= this.numBins) return false
+		if (this.getStonesInVessel(vessel) === 0) return false
+
 		this.play(vessel)
+		return true
 	}
 
 	private checkForVictory() {
@@ -131,7 +135,7 @@ class KalahGame {
 
 	reset()
 	{
-		this.northTurn = false
+		this.southTurn = true
 		this.gameOver = false
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
 		this.board[this.numBins] = 0

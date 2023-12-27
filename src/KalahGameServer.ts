@@ -1,11 +1,27 @@
 import { Server as SocketioServer } from 'socket.io'
-import { getNorthPerspectivePayload, getNorthPerspectiveVessel, getSouthPerspectivePayload, getSouthPerspectiveVessel, getSpectatorPerspectivePayload, Payload } from './ClientPerspective.js';
 import { KalahGame } from './KalahGame.js';
 import { httpServerType } from './KalahWebServer.js';
 
 interface ClientData {
 	idleTimer: NodeJS.Timeout | null,
 	disconnectTimer: NodeJS.Timeout | null,
+}
+
+enum ClientRole {
+	SPECTATOR = 'spectator',
+	SOUTH = 'south',
+	NORTH = 'north',
+}
+
+interface Payload {
+	role: ClientRole
+	game: {
+		board: Array<number>
+		isSouthTurn: boolean
+		isGameOver: boolean
+		southScore: number
+		northScore: number
+	}
 }
 
 export function startKalahGameServer(httpServer: httpServerType) {
@@ -52,13 +68,19 @@ export function startKalahGameServer(httpServer: httpServerType) {
 
 
 	function getPayload(socketId: string): Payload {
-		if (socketId === south) {
-			return getSouthPerspectivePayload(game)
-		} else if (socketId === north) {
-			return getNorthPerspectivePayload(game)
-		} else {
-			return getSpectatorPerspectivePayload(game)
+		const [southScore, northScore] = game.getScores()
+		const role = socketId === south ? ClientRole.SOUTH : socketId === north ? ClientRole.NORTH : ClientRole.SPECTATOR
+		const payload = {
+			role: role,
+			game: {
+				board: game.getBoard(),
+				isSouthTurn: game.isSouthTurn(),
+				isGameOver: game.isGameOver(),
+				southScore,
+				northScore,
+			}
 		}
+		return payload
 	}
 
 	function updateClient(socketId: string) {
@@ -123,28 +145,30 @@ export function startKalahGameServer(httpServer: httpServerType) {
 
 	function onPlay(socketId: string, vessel: number) {
 		let role = socketId
-		let absoluteVessel = vessel
+		let hasPlayed = false
 
-		if (!game.isNorthTurn()) {
+		if (game.isSouthTurn()) {
 			if (socketId !== south) return
 			role = 'South'
-			game.playSouth(absoluteVessel = getSouthPerspectiveVessel(vessel, game))
+			hasPlayed = game.playSouth(vessel)
 		} else {
 			if (socketId !== north) return
 			role = 'North'
-			game.playNorth(absoluteVessel = getNorthPerspectiveVessel(vessel, game))
+			hasPlayed = game.playNorth(vessel)
 		}
 
+		if (!hasPlayed) return
+
 		const [southScore, northScore] = game.getScores()
-		console.log('%s played (%d); score is %d ; %d', role, absoluteVessel, southScore, northScore)
+		console.log('%s played (%d); score is %d ; %d', role, vessel, southScore, northScore)
 
 		if (game.isGameOver()) {
 			const [southScore, northScore] = game.getScores()
-			if (southScore > northScore){
+			if (southScore > northScore) {
 				console.log('south player wins!')
-			}else if (southScore < northScore){
+			} else if (southScore < northScore) {
 				console.log('north player wins!')
-			}else{
+			} else {
 				console.log('it\'s a tie!')
 			}
 			setTimeout(() => {

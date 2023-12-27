@@ -40,31 +40,44 @@ socket.on('update', (payload) => {
 
 	resetBoardStyles()
 
-	const isPlayer = payload.role === 'player'
+	const isPlayer = payload.role === 'south' || payload.role === 'north'
 
-	document.querySelector('span#role').textContent = isPlayer ? 'You are playing.' : 'You are spectating.'
+	document.querySelector('span#role').textContent = payload.role === 'south' ? 'You are south.' : payload.role === 'north' ? 'You are north.' : 'You are spectating.'
 	document.querySelector('button#role').textContent = !isPlayer ? 'Play' : 'Spectate'
 
-	if (!payload.isGameOver) {
-		if (payload.isNorthTurn) {
-			document.querySelector('div#board').classList.add('northTurn')
-			document.querySelector('span#turn').textContent = isPlayer ? 'It is the opponent\'s turn.' : 'It is the north player\'s turn.'
-		} else {
-			document.querySelector('div#board').classList.add(isPlayer ? 'playerTurn' : 'southTurn')
-			document.querySelector('span#turn').textContent = isPlayer ? 'It is your turn.' : 'It is the south player\'s turn.'
+	if (!payload.game.isGameOver) {
+
+		const isPlayerTurn = payload.role === (payload.game.isSouthTurn ? 'south' : 'north')
+		if (isPlayerTurn) {
+			document.querySelector('div#board').classList.add('playerTurn')
 		}
+
+		if (isPlayer) {
+			document.querySelector('span#turn').textContent = isPlayerTurn ? 'It is your turn.' : 'It is the opponent\'s turn.'
+		} else {
+			document.querySelector('span#turn').textContent = payload.game.isSouthTurn ? 'It is the south player\'s turn.' : 'It is the north player\'s turn.'
+		}
+
+		if (payload.game.isSouthTurn) {
+			document.querySelector('div#board').classList.add('southTurn')
+		} else {
+			document.querySelector('div#board').classList.add('northTurn')
+		}
+
 	} else {
-		if (payload.southScore > payload.northScore) {
+		if (payload.game.southScore > payload.game.northScore) {
 			document.querySelector('div#board').classList.add('southVictory')
-		} else if (payload.southScore < payload.northScore) {
+			document.querySelector('span#turn').textContent = 'The south player has won.'
+		} else if (payload.game.southScore < payload.game.northScore) {
 			document.querySelector('div#board').classList.add('northVictory')
+			document.querySelector('span#turn').textContent = 'The north player has won.'
 		} else {
 			document.querySelector('div#board').classList.add('tie')
+			document.querySelector('span#turn').textContent = 'The game is a tie.'
 		}
-		document.querySelector('span#turn').textContent = 'The game is over.'
 	}
 
-	const board = payload.board
+	const board = payload.game.board
 	const vessels = document.querySelectorAll('.vessel')
 	for (let index = 0; index < board.length; index++) {
 		const vessel = vessels[index]
@@ -103,7 +116,7 @@ const handleClickConnect = () => {
 }
 
 const handleClickRole = () => {
-	socket.emit('role', previousRole !== 'player')
+	socket.emit('role', !(previousRole === 'south' || previousRole === 'north'))
 }
 
 

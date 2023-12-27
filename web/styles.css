@@ -102,11 +102,13 @@ label {
 #board.southTurn > .south { box-shadow: 0 0 20px 3px gold; }
 #board.northTurn > .north { box-shadow: 0 0 20px 3px coral; }
 
-#board.playerTurn > .south {
-	box-shadow: 0 0 10px 3px cyan;
+#board.playerTurn.southTurn > .south.vessel,
+#board.playerTurn.northTurn > .north.vessel {
+	box-shadow: 0 0 10px 3px white;
 	cursor: pointer;
 }
-#board.playerTurn > .south:hover {
+#board.playerTurn.southTurn > .south.vessel:hover,
+#board.playerTurn.northTurn > .north.vessel:hover {
 	outline: white solid 2px;
 }
 
