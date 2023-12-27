@@ -5,6 +5,11 @@ class KalahGame {
 	private board: number[]
 	private southTurn: boolean
 	private gameOver: boolean
+	private previousTurn: {
+		southTurn: boolean
+		startVessel: number
+		endVessel: number
+	} | null
 
 	readonly numBins: number
 	readonly maxVesselIndex: number
@@ -15,6 +20,8 @@ class KalahGame {
 
 		this.southTurn = true
 		this.gameOver = false
+		this.previousTurn = null
+
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
 		this.board[this.numBins] = 0
 		this.board[this.maxVesselIndex] = 0
@@ -28,6 +35,12 @@ class KalahGame {
 	/** Returns whether the game is over */
 	isGameOver(): boolean {
 		return this.gameOver
+	}
+
+	/** Returns information about the previous turn */
+	getPreviousTurn() {
+		if (this.previousTurn == null) return null
+		return { ...this.previousTurn }
 	}
 
 	/** Returns whether it is the south player's turn */
@@ -62,6 +75,8 @@ class KalahGame {
 		if (vessel < 0) throw null
 		if (vessel > this.maxVesselIndex) throw null
 
+		const startVessel = vessel
+
 		const ownStore = this.southTurn ? this.numBins : this.maxVesselIndex
 		const opponentStore = this.southTurn ? this.maxVesselIndex : this.numBins
 
@@ -86,6 +101,12 @@ class KalahGame {
 
 		if (vessel !== ownStore) {
 			this.southTurn = !this.southTurn
+		}
+
+		this.previousTurn = {
+			southTurn: this.southTurn,
+			startVessel,
+			endVessel: vessel
 		}
 
 		this.checkForVictory()
@@ -133,10 +154,11 @@ class KalahGame {
 		}
 	}
 
-	reset()
-	{
+	reset() {
 		this.southTurn = true
 		this.gameOver = false
+		this.previousTurn = null
+
 		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
 		this.board[this.numBins] = 0
 		this.board[this.maxVesselIndex] = 0

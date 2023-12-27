@@ -21,6 +21,11 @@ interface Payload {
 		isGameOver: boolean
 		southScore: number
 		northScore: number
+		previousTurn: {
+			southTurn: boolean
+			startVessel: number
+			endVessel: number
+		} | null
 	}
 }
 
@@ -78,6 +83,7 @@ export function startKalahGameServer(httpServer: httpServerType) {
 				isGameOver: game.isGameOver(),
 				southScore,
 				northScore,
+				previousTurn: game.getPreviousTurn(),
 			}
 		}
 		return payload

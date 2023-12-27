@@ -10,6 +10,7 @@ const socket = io({
 
 const resetBoardStyles = () => {
 	document.querySelector('div#board').classList.remove('offline', 'playerTurn', 'southTurn', 'northTurn', 'southVictory', 'northVictory', 'tie')
+	document.querySelectorAll('.vessel').forEach(v => v.classList.remove('previous', 'capture', 'freeturn'))
 }
 
 socket.on('connect', () => {
@@ -42,7 +43,7 @@ socket.on('update', (payload) => {
 
 	const isPlayer = payload.role === 'south' || payload.role === 'north'
 
-	document.querySelector('span#role').textContent = payload.role === 'south' ? 'You are south.' : payload.role === 'north' ? 'You are north.' : 'You are spectating.'
+	document.querySelector('span#role').textContent = payload.role === 'south' ? 'You are south.' : payload.role === 'north' ? 'You are north.' : `You are spectating. The score is ${payload.game.southScore}:${payload.game.northScore}`
 	document.querySelector('button#role').textContent = !isPlayer ? 'Play' : 'Spectate'
 
 	if (!payload.game.isGameOver) {
@@ -97,6 +98,20 @@ socket.on('update', (payload) => {
 			vessel.append(node)
 		}
 	}
+
+	const previousTurn = payload.game.previousTurn
+	if (previousTurn != null) {
+		const vessels = document.querySelectorAll('#board > .vessel')
+		const startVessel = vessels[previousTurn.startVessel]
+		const endVessel = vessels[previousTurn.endVessel]
+
+		startVessel.classList.add('previous')
+		if (previousTurn.endVessel === 6 || previousTurn.endVessel === 13)
+			endVessel.classList.add('freeturn')
+		else if (board[previousTurn.endVessel] === 0)
+			endVessel.classList.add('capture')
+	}
+
 	previousRole = payload.role
 })
 

@@ -69,11 +69,11 @@ label {
 }
 .south > label {
 	align-self: end;
-	margin-bottom: -35px;
+	margin-bottom: -40px;
 }
 .north > label {
 	align-self: start;
-	margin-top: -35px;
+	margin-top: -40px;
 }
 
 @media (hover: hover) {
@@ -85,6 +85,41 @@ label {
 	.vessel:hover > label, .vessel:focus-visible > label {
 		opacity: 1;
 	}
+}
+
+/* SPECIAL MOVES */
+
+#board > .vessel.previous.vessel.previous { /* needs the extra specificity */
+	box-shadow: 0 0 10px 3px dimgrey;
+}
+
+.bin.capture::after,
+.store.freeturn::after {
+	position: absolute;
+	text-align: center;
+	font-size: 0.65em;
+	text-transform: uppercase;
+}
+
+.bin.capture::after {
+	content: 'Capture';
+	letter-spacing: 1px;
+}
+.south.bin::after {
+	margin-bottom: -65px;
+}
+.north.bin::after {
+	margin-top: -65px;
+}
+
+.store.freeturn::after {
+	content: 'Free turn';
+}
+.south.store::after {
+	margin-bottom: -130px;
+}
+.north.store::after {
+	margin-top: -130px;
 }
 
 /* GAMEPLAY STATES */
@@ -102,13 +137,13 @@ label {
 #board.southTurn > .south { box-shadow: 0 0 20px 3px gold; }
 #board.northTurn > .north { box-shadow: 0 0 20px 3px coral; }
 
-#board.playerTurn.southTurn > .south.vessel,
-#board.playerTurn.northTurn > .north.vessel {
+#board.playerTurn.southTurn > .south,
+#board.playerTurn.northTurn > .north {
 	box-shadow: 0 0 10px 3px white;
 	cursor: pointer;
 }
-#board.playerTurn.southTurn > .south.vessel:hover,
-#board.playerTurn.northTurn > .north.vessel:hover {
+#board.playerTurn.southTurn > .south:hover,
+#board.playerTurn.northTurn > .north:hover {
 	outline: white solid 2px;
 }
 
