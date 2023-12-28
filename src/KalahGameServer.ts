@@ -1,5 +1,5 @@
 import { Server as SocketioServer } from 'socket.io'
-import { KalahGame } from './KalahGame.js';
+import { KalahGame, TurnType } from './KalahGame.js';
 import { httpServerType } from './KalahWebServer.js';
 
 interface ClientData {
@@ -21,9 +21,10 @@ interface Payload {
 		southScore: number
 		northScore: number
 		previousTurn: {
-			southTurn: boolean
+			isSouthTurn: boolean
 			startVessel: number
 			endVessel: number
+			type: TurnType
 		} | null
 	}
 }

@@ -1,14 +1,21 @@
 const numBins = 6
 const startingStones = 4
 
-class KalahGame {
+export enum TurnType {
+	NORMAL = 'normal',
+	FREETURN = 'freeturn',
+	CAPTURE = 'capture',
+}
+
+export class KalahGame {
 	private board: number[]
 	private southTurn: boolean
 	private gameOver: boolean
 	private previousTurn: {
-		southTurn: boolean
+		isSouthTurn: boolean
 		startVessel: number
 		endVessel: number
+		type: TurnType
 	} | null
 
 	readonly numBins: number
@@ -76,6 +83,7 @@ class KalahGame {
 		if (vessel > this.maxVesselIndex) throw null
 
 		const startVessel = vessel
+		let turnType = TurnType.NORMAL
 
 		const ownStore = this.southTurn ? this.numBins : this.maxVesselIndex
 		const opponentStore = this.southTurn ? this.maxVesselIndex : this.numBins
@@ -97,16 +105,20 @@ class KalahGame {
 			this.board[ownStore] += this.board[oppositeBin] + 1
 			this.board[vessel] = 0
 			this.board[oppositeBin] = 0
+			turnType = TurnType.CAPTURE
 		}
 
 		if (vessel !== ownStore) {
 			this.southTurn = !this.southTurn
+		} else {
+			turnType = TurnType.FREETURN
 		}
 
 		this.previousTurn = {
-			southTurn: this.southTurn,
+			isSouthTurn: this.southTurn,
 			startVessel,
-			endVessel: vessel
+			endVessel: vessel,
+			type: turnType,
 		}
 
 		this.checkForVictory()
@@ -164,5 +176,3 @@ class KalahGame {
 		this.board[this.maxVesselIndex] = 0
 	}
 }
-
-export { KalahGame }

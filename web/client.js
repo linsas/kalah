@@ -106,10 +106,11 @@ socket.on('update', (payload) => {
 		const endVessel = vessels[previousTurn.endVessel]
 
 		startVessel.classList.add('previous')
-		if (previousTurn.endVessel === 6 || previousTurn.endVessel === 13)
+		if (previousTurn.type === 'freeturn') {
 			endVessel.classList.add('freeturn')
-		else if (board[previousTurn.endVessel] === 0)
+		} else if (previousTurn.type === 'capture') {
 			endVessel.classList.add('capture')
+		}
 	}
 
 	previousRole = payload.role
