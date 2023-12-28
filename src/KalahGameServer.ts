@@ -38,9 +38,11 @@ export function startKalahGameServer(httpServer: httpServerType) {
 	const ioServer = new SocketioServer(httpServer)
 
 	const idleTimeoutMs: number | null = 5 * 60 * 1000
-	const disconnectTimeoutMs: number | null = 15 * 60 * 1000
+	const gameTimeoutMs: number | null = 15 * 60 * 1000
+	const disconnectTimeoutMs: number | null = 30 * 60 * 1000
 
 	let idleTimer: NodeJS.Timeout | null = null
+	let gameTimer: NodeJS.Timeout | null = null
 
 	function clearIdleTimer() {
 		if (idleTimer != null) clearTimeout(idleTimer)
@@ -62,6 +64,25 @@ export function startKalahGameServer(httpServer: httpServerType) {
 			console.log('player moved to spectator: %s', socketId)
 			updateClient(socketId)
 		}, idleTimeoutMs)
+	}
+
+	function clearGameTimer() {
+		if (gameTimer != null) clearTimeout(gameTimer)
+		gameTimer = null
+	}
+
+	function renewGameTimer() {
+		if (gameTimeoutMs == null) return
+		if (gameTimer != null) return
+		gameTimer = setTimeout(() => {
+			north = null
+			south = null
+			game.reset()
+			console.log('game timeout')
+			renewIdleTimer()
+			updateAllClients()
+			clearGameTimer()
+		}, gameTimeoutMs)
 	}
 
 	function renewDisconnectTimer(socketId: string) {
@@ -123,6 +144,7 @@ export function startKalahGameServer(httpServer: httpServerType) {
 				updateClient(socketId)
 				renewDisconnectTimer(socketId)
 				if (game.isSouthTurn()) renewIdleTimer()
+				renewGameTimer()
 				return
 			}
 			if (north === null) {
@@ -130,6 +152,7 @@ export function startKalahGameServer(httpServer: httpServerType) {
 				updateClient(socketId)
 				renewDisconnectTimer(socketId)
 				if (!game.isSouthTurn()) renewIdleTimer()
+				renewGameTimer()
 				return
 			}
 			console.log('No player slots for ' + socketId)
@@ -180,6 +203,7 @@ export function startKalahGameServer(httpServer: httpServerType) {
 			} else {
 				console.log('it\'s a tie!')
 			}
+			clearGameTimer()
 			setTimeout(() => {
 				north = null
 				south = null
