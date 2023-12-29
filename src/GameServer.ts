@@ -1,9 +1,10 @@
 import { Server as SocketioServer } from 'socket.io'
 import { Game, newGame, PreviousTurn } from './Game.js';
+import { createTimer, Timer } from './Timer.js';
 import { httpServerType } from './WebServer.js';
 
 interface ClientData {
-	disconnectTimer: NodeJS.Timeout | null,
+	disconnectTimer: Timer,
 }
 
 enum ClientRole {
@@ -24,73 +25,41 @@ interface Payload {
 	}
 }
 
+const idleTimeoutMs = 5 * 60 * 1000
+const gameTimeoutMs = 15 * 60 * 1000
+const disconnectTimeoutMs = 30 * 60 * 1000
+
 export function startGameServer(httpServer: httpServerType) {
-	let game: Game = newGame()
-	let clients: Map<string, ClientData> = new Map()
+	const game: Game = newGame()
+	const clients: Map<string, ClientData> = new Map()
 
 	let south: string | null = null
 	let north: string | null = null
 
 	const ioServer = new SocketioServer(httpServer)
 
-	const idleTimeoutMs: number | null = 5 * 60 * 1000
-	const gameTimeoutMs: number | null = 15 * 60 * 1000
-	const disconnectTimeoutMs: number | null = 30 * 60 * 1000
-
-	let idleTimer: NodeJS.Timeout | null = null
-	let gameTimer: NodeJS.Timeout | null = null
-
-	function clearIdleTimer() {
-		if (idleTimer != null) clearTimeout(idleTimer)
-	}
-
-	function renewIdleTimer() {
-		if (idleTimeoutMs == null) return
-		if (idleTimer != null) clearTimeout(idleTimer)
-		idleTimer = setTimeout(() => {
-			let socketId: string | null
-			if (game.isSouthTurn()) {
-				socketId = south
-				south = null
-			} else {
-				socketId = north
-				north = null
-			}
-			if (socketId == null) return
-			console.log('player moved to spectator: %s', socketId)
-			updateClient(socketId)
-		}, idleTimeoutMs)
-	}
-
-	function clearGameTimer() {
-		if (gameTimer != null) clearTimeout(gameTimer)
-		gameTimer = null
-	}
-
-	function renewGameTimer() {
-		if (gameTimeoutMs == null) return
-		if (gameTimer != null) return
-		gameTimer = setTimeout(() => {
-			north = null
+	const idleTimer: Timer = createTimer(idleTimeoutMs, () => {
+		let socketId: string | null
+		if (game.isSouthTurn()) {
+			socketId = south
 			south = null
-			game.reset()
-			console.log('game timeout')
-			renewIdleTimer()
-			updateAllClients()
-			clearGameTimer()
-		}, gameTimeoutMs)
-	}
+		} else {
+			socketId = north
+			north = null
+		}
+		if (socketId == null) return
+		console.log('player moved to spectator: %s', socketId)
+		updateClient(socketId)
+	})
 
-	function renewDisconnectTimer(socketId: string) {
-		if (disconnectTimeoutMs == null) return
-		const client = clients.get(socketId)
-		if (client == null) return
-		if (client.disconnectTimer != null) clearTimeout(client.disconnectTimer)
-		client.disconnectTimer = setTimeout(() => {
-			console.log('client timeout %s', socketId)
-			ioServer.to(socketId).disconnectSockets()
-		}, disconnectTimeoutMs)
-	}
+	const gameTimer: Timer = createTimer(gameTimeoutMs, () => {
+		north = null
+		south = null
+		game.reset()
+		console.log('game timeout')
+		idleTimer.stop()
+		updateAllClients()
+	})
 
 
 	function getPayload(socketId: string): Payload {
@@ -123,32 +92,41 @@ export function startGameServer(httpServer: httpServerType) {
 
 
 	function onConnect(socketId: string) {
-		clients.set(socketId, {
-			disconnectTimer: null,
+		const disconnectTimer = createTimer(disconnectTimeoutMs, () => {
+			console.log('client timeout %s', socketId)
+			ioServer.to(socketId).disconnectSockets()
 		})
+
+		clients.set(socketId, {
+			disconnectTimer: disconnectTimer,
+		})
+
+		disconnectTimer.restart()
 		updateClient(socketId)
-		renewDisconnectTimer(socketId)
 		console.log(socketId + ' connected')
 	}
 
 	function onChangeRole(socketId: string, bePlayer: boolean) {
+		const client = clients.get(socketId)
+		if (client == null) return
+
 		if (bePlayer) {
 			if (south === socketId) return
 			if (north === socketId) return
 			if (south === null) {
 				south = socketId
 				updateClient(socketId)
-				renewDisconnectTimer(socketId)
-				if (game.isSouthTurn()) renewIdleTimer()
-				renewGameTimer()
+				client.disconnectTimer.restart()
+				if (game.isSouthTurn()) idleTimer.restart()
+				if (!gameTimer.isRunning()) gameTimer.restart()
 				return
 			}
 			if (north === null) {
 				north = socketId
 				updateClient(socketId)
-				renewDisconnectTimer(socketId)
-				if (!game.isSouthTurn()) renewIdleTimer()
-				renewGameTimer()
+				client.disconnectTimer.restart()
+				if (!game.isSouthTurn()) idleTimer.restart()
+				if (!gameTimer.isRunning()) gameTimer.restart()
 				return
 			}
 			console.log('No player slots for ' + socketId)
@@ -157,15 +135,15 @@ export function startGameServer(httpServer: httpServerType) {
 			if (socketId === south) {
 				south = null
 				updateClient(socketId)
-				renewDisconnectTimer(socketId)
-				if (game.isSouthTurn()) clearIdleTimer()
+				client.disconnectTimer.restart()
+				if (game.isSouthTurn()) idleTimer.stop()
 				return
 			}
 			if (socketId === north) {
 				north = null
 				updateClient(socketId)
-				renewDisconnectTimer(socketId)
-				if (!game.isSouthTurn()) clearIdleTimer()
+				client.disconnectTimer.restart()
+				if (!game.isSouthTurn()) idleTimer.stop()
 				return
 			}
 		}
@@ -199,7 +177,7 @@ export function startGameServer(httpServer: httpServerType) {
 			} else {
 				console.log('it\'s a tie!')
 			}
-			clearGameTimer()
+			gameTimer.stop()
 			setTimeout(() => {
 				north = null
 				south = null
@@ -208,24 +186,27 @@ export function startGameServer(httpServer: httpServerType) {
 			}, 10 * 1000)
 		}
 
+		const client = clients.get(socketId)
+		if (client != null) client.disconnectTimer.restart()
+
 		updateAllClients()
-		renewDisconnectTimer(socketId)
-		renewIdleTimer()
+		idleTimer.restart()
 	}
 
 	function onDisconnect(socketId: string) {
 		if (south === socketId) {
 			south = null
-			if (game.isSouthTurn()) clearIdleTimer()
+			if (game.isSouthTurn()) idleTimer.stop()
 		}
 		if (north === socketId) {
 			north = null
-			if (!game.isSouthTurn()) clearIdleTimer()
+			if (!game.isSouthTurn()) idleTimer.stop()
 		}
 
 		const client = clients.get(socketId)
 		if (client == null) return
-		if (client.disconnectTimer != null) clearTimeout(client.disconnectTimer)
+
+		client.disconnectTimer.stop()
 
 		clients.delete(socketId)
 		console.log(socketId + ' disconnected')
