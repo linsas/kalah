@@ -1,6 +1,6 @@
 import { Server as SocketioServer } from 'socket.io'
-import { Game, newGame, PreviousTurn } from './KalahGame.js';
-import { httpServerType } from './KalahWebServer.js';
+import { Game, newGame, PreviousTurn } from './Game.js';
+import { httpServerType } from './WebServer.js';
 
 interface ClientData {
 	disconnectTimer: NodeJS.Timeout | null,
@@ -24,7 +24,7 @@ interface Payload {
 	}
 }
 
-export function startKalahGameServer(httpServer: httpServerType) {
+export function startGameServer(httpServer: httpServerType) {
 	let game: Game = newGame()
 	let clients: Map<string, ClientData> = new Map()
 
