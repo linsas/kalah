@@ -1,5 +1,5 @@
 import { Server as SocketioServer } from 'socket.io'
-import { KalahGame, TurnType } from './KalahGame.js';
+import { Game, newGame, PreviousTurn } from './KalahGame.js';
 import { httpServerType } from './KalahWebServer.js';
 
 interface ClientData {
@@ -20,17 +20,12 @@ interface Payload {
 		isGameOver: boolean
 		southScore: number
 		northScore: number
-		previousTurn: {
-			isSouthTurn: boolean
-			startVessel: number
-			endVessel: number
-			type: TurnType
-		} | null
+		previousTurn: PreviousTurn | null
 	}
 }
 
 export function startKalahGameServer(httpServer: httpServerType) {
-	let game: KalahGame = new KalahGame()
+	let game: Game = newGame()
 	let clients: Map<string, ClientData> = new Map()
 
 	let south: string | null = null

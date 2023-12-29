@@ -1,67 +1,71 @@
-const numBins = 6
-const startingStones = 4
+const numBinsDefault = 6
+const startingStonesDefault = 4
 
-export enum TurnType {
+enum TurnType {
 	NORMAL = 'normal',
 	FREETURN = 'freeturn',
 	CAPTURE = 'capture',
 }
 
-export class KalahGame {
-	private board: number[]
-	private southTurn: boolean
-	private gameOver: boolean
-	private previousTurn: {
-		isSouthTurn: boolean
-		startVessel: number
-		endVessel: number
-		type: TurnType
-	} | null
+export interface PreviousTurn {
+	isSouthTurn: boolean
+	startVessel: number
+	endVessel: number
+	type: TurnType
+}
 
-	readonly numBins: number
-	readonly maxVesselIndex: number
+export interface Game {
+	getBoard: () => number[],
+	isGameOver: () => boolean,
+	getPreviousTurn: () => PreviousTurn | null,
+	isSouthTurn: () => boolean,
+	getScores: () => number[],
+	playSouth: (vessel: number) => boolean,
+	playNorth: (vessel: number) => boolean,
+	reset: () => void,
+}
 
-	constructor() {
-		this.numBins = numBins
-		this.maxVesselIndex = 2 * numBins + 1
+export function newGame(): Game {
+	let southTurn: boolean = true
+	let gameOver: boolean = false
 
-		this.southTurn = true
-		this.gameOver = false
-		this.previousTurn = null
+	let previousTurn: PreviousTurn | null = null
 
-		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
-		this.board[this.numBins] = 0
-		this.board[this.maxVesselIndex] = 0
-	}
+	const numBins: number = numBinsDefault
+	const maxVesselIndex: number = 2 * numBins + 1
+
+	let board: number[] = Array(maxVesselIndex + 1).fill(startingStonesDefault)
+	board[numBins] = 0
+	board[maxVesselIndex] = 0
 
 	/** Returns a representation of the game board */
-	getBoard() {
-		return this.board.slice()
+	function getBoard(): number[] {
+		return board.slice()
 	}
 
 	/** Returns whether the game is over */
-	isGameOver(): boolean {
-		return this.gameOver
+	function isGameOver(): boolean {
+		return gameOver
 	}
 
 	/** Returns information about the previous turn */
-	getPreviousTurn() {
-		if (this.previousTurn == null) return null
-		return { ...this.previousTurn }
+	function getPreviousTurn(): PreviousTurn | null {
+		if (previousTurn == null) return null
+		return { ...previousTurn }
 	}
 
 	/** Returns whether it is the south player's turn */
-	isSouthTurn(): boolean {
-		return this.southTurn
+	function isSouthTurn(): boolean {
+		return southTurn
 	}
 
 	/** Returns the number of stones in each players' vessels */
-	getScores() {
+	function getScores(): number[] {
 		let southScore = 0
 		let northScore = 0
-		for (let index = 0; index < this.board.length; index++) {
-			const numStones = this.board[index]
-			if (index <= this.numBins) {
+		for (let index = 0; index < board.length; index++) {
+			const numStones = board[index]
+			if (index <= numBins) {
 				southScore += numStones
 			} else {
 				northScore += numStones
@@ -72,107 +76,121 @@ export class KalahGame {
 	}
 
 	/** Gets the number of stones in a vessel */
-	private getStonesInVessel(vessel: number) {
+	function getStonesInVessel(vessel: number): number {
 		if (vessel < 0) throw null
-		if (vessel > this.maxVesselIndex) throw null
-		return this.board[vessel]
+		if (vessel > maxVesselIndex) throw null
+		return board[vessel]
 	}
 
-	private play(vessel: number) {
+	function play(vessel: number): void {
 		if (vessel < 0) throw null
-		if (vessel > this.maxVesselIndex) throw null
+		if (vessel > maxVesselIndex) throw null
 
 		const startVessel = vessel
 		let turnType = TurnType.NORMAL
 
-		const ownStore = this.southTurn ? this.numBins : this.maxVesselIndex
-		const opponentStore = this.southTurn ? this.maxVesselIndex : this.numBins
+		const ownStore = southTurn ? numBins : maxVesselIndex
+		const opponentStore = southTurn ? maxVesselIndex : numBins
 
-		let hand = this.board[vessel]
-		this.board[vessel] = 0
+		let hand = board[vessel]
+		board[vessel] = 0
 		while (hand > 0) {
 			vessel++
 			if (vessel === opponentStore) vessel++
-			if (vessel > this.maxVesselIndex) vessel = 0
+			if (vessel > maxVesselIndex) vessel = 0
 
-			this.board[vessel] += 1
+			board[vessel] += 1
 			hand--
 		}
 
-		const isSelfOwnedBin = vessel < ownStore && vessel >= (ownStore - this.numBins)
-		if (this.board[vessel] === 1 && isSelfOwnedBin) {
-			const oppositeBin = 2 * this.numBins - vessel
-			this.board[ownStore] += this.board[oppositeBin] + 1
-			this.board[vessel] = 0
-			this.board[oppositeBin] = 0
+		const isSelfOwnedBin = vessel < ownStore && vessel >= (ownStore - numBins)
+		if (board[vessel] === 1 && isSelfOwnedBin) {
+			const oppositeBin = 2 * numBins - vessel
+			board[ownStore] += board[oppositeBin] + 1
+			board[vessel] = 0
+			board[oppositeBin] = 0
 			turnType = TurnType.CAPTURE
 		}
 
 		if (vessel !== ownStore) {
-			this.southTurn = !this.southTurn
+			southTurn = !southTurn
 		} else {
 			turnType = TurnType.FREETURN
 		}
 
-		this.previousTurn = {
-			isSouthTurn: this.southTurn,
+		previousTurn = {
+			isSouthTurn: southTurn,
 			startVessel,
 			endVessel: vessel,
 			type: turnType,
 		}
 
-		this.checkForVictory()
+		checkForVictory()
 	}
 
-	playSouth(vessel: number) {
-		if (this.gameOver) return false
-		if (!this.southTurn) return false
-		if (vessel > this.numBins) return false
-		if (this.getStonesInVessel(vessel) === 0) return false
+	function playSouth(vessel: number): boolean {
+		if (gameOver) return false
+		if (!southTurn) return false
+		if (vessel > numBins) return false
+		if (getStonesInVessel(vessel) === 0) return false
 
-		this.play(vessel)
-		return true
-	}
-	playNorth(vessel: number) {
-		if (this.gameOver) return false
-		if (this.southTurn) return false
-		if (vessel <= this.numBins) return false
-		if (this.getStonesInVessel(vessel) === 0) return false
-
-		this.play(vessel)
+		play(vessel)
 		return true
 	}
 
-	private checkForVictory() {
+	function playNorth(vessel: number): boolean {
+		if (gameOver) return false
+		if (southTurn) return false
+		if (vessel <= numBins) return false
+		if (getStonesInVessel(vessel) === 0) return false
+
+		play(vessel)
+		return true
+	}
+
+	function checkForVictory(): void {
 		let southClear = true
 		let northClear = true
-		for (let index = 0; index < this.board.length; index++) {
-			const numStones = this.board[index]
-			if (index <= this.numBins) {
+		for (let index = 0; index < board.length; index++) {
+			const numStones = board[index]
+			if (index <= numBins) {
 				// south side
-				if (numStones > 0 && index !== this.numBins) {
+				if (numStones > 0 && index !== numBins) {
 					southClear = false
 				}
 			} else {
 				// north side
-				if (numStones > 0 && index !== this.maxVesselIndex) {
+				if (numStones > 0 && index !== maxVesselIndex) {
 					northClear = false
 				}
 			}
 		}
 
 		if (southClear || northClear) {
-			this.gameOver = true
+			gameOver = true
 		}
 	}
 
-	reset() {
-		this.southTurn = true
-		this.gameOver = false
-		this.previousTurn = null
+	function reset(): void {
+		southTurn = true
+		gameOver = false
+		previousTurn = null
 
-		this.board = Array(this.maxVesselIndex + 1).fill(startingStones)
-		this.board[this.numBins] = 0
-		this.board[this.maxVesselIndex] = 0
+		board = Array(maxVesselIndex + 1).fill(startingStonesDefault)
+		board[numBins] = 0
+		board[maxVesselIndex] = 0
 	}
+
+	const game = {
+		getBoard,
+		isGameOver,
+		getPreviousTurn,
+		isSouthTurn,
+		getScores,
+		playSouth,
+		playNorth,
+		reset,
+	} as Game
+
+	return game
 }
