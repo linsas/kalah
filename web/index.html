@@ -8,6 +8,7 @@
 </head>
 
 <body>
+	<div id="northPlayer"></div>
 	<div id="board" class="offline">
 		<div tabindex="0" class="south bin vessel" id="southBin1"><label>0</label></div>
 		<div tabindex="0" class="south bin vessel" id="southBin2"><label>0</label></div>
@@ -24,13 +25,14 @@
 		<div tabindex="0" class="north bin vessel" id="northBin6"><label>0</label></div>
 		<div tabindex="0" class="north store vessel" id="southStore"><label>0</label></div>
 	</div>
+	<div id="southPlayer"></div>
 	<div id="status">
 		<span id="role">You are not connected.</span>
 		<span id="turn"></span>
+		<span id="numSpectators"></span>
 	</div>
 	<div id="buttons">
 		<button id="connect">Connect</button>
-		<br />
 		<button id="role" disabled>Play</button>
 	</div>
 

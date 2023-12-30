@@ -15,6 +15,9 @@ enum ClientRole {
 
 interface Payload {
 	role: ClientRole
+	spectators: number
+	isSouthActive: boolean
+	isNorthActive: boolean
 	game: {
 		board: Array<number>
 		isSouthTurn: boolean
@@ -49,14 +52,14 @@ export function startGameServer(httpServer: httpServerType) {
 		}
 		if (socketId == null) return
 		console.log('player moved to spectator: %s', socketId)
-		updateClient(socketId)
+		updateAllClients()
 	})
 
 	const gameTimer: Timer = createTimer(gameTimeoutMs, () => {
+		console.log('game timeout')
 		north = null
 		south = null
 		game.reset()
-		console.log('game timeout')
 		idleTimer.stop()
 		updateAllClients()
 	})
@@ -67,6 +70,9 @@ export function startGameServer(httpServer: httpServerType) {
 		const role = socketId === south ? ClientRole.SOUTH : socketId === north ? ClientRole.NORTH : ClientRole.SPECTATOR
 		const payload = {
 			role: role,
+			spectators: clients.size - (south != null ? 1 : 0) - (north != null ? 1 : 0),
+			isSouthActive: south != null,
+			isNorthActive: north != null,
 			game: {
 				board: game.getBoard(),
 				isSouthTurn: game.isSouthTurn(),
@@ -75,18 +81,14 @@ export function startGameServer(httpServer: httpServerType) {
 				northScore,
 				previousTurn: game.getPreviousTurn(),
 			}
-		}
+		} as Payload
 		return payload
-	}
-
-	function updateClient(socketId: string) {
-		const payload = getPayload(socketId)
-		ioServer.to(socketId).emit('update', payload)
 	}
 
 	function updateAllClients() {
 		for (const socketId of clients.keys()) {
-			updateClient(socketId)
+			const payload = getPayload(socketId)
+			ioServer.to(socketId).emit('update', payload)
 		}
 	}
 
@@ -102,7 +104,7 @@ export function startGameServer(httpServer: httpServerType) {
 		})
 
 		disconnectTimer.restart()
-		updateClient(socketId)
+		updateAllClients()
 		console.log(socketId + ' connected')
 	}
 
@@ -115,7 +117,7 @@ export function startGameServer(httpServer: httpServerType) {
 			if (north === socketId) return
 			if (south === null) {
 				south = socketId
-				updateClient(socketId)
+				updateAllClients()
 				client.disconnectTimer.restart()
 				if (game.isSouthTurn()) idleTimer.restart()
 				if (!gameTimer.isRunning()) gameTimer.restart()
@@ -123,7 +125,7 @@ export function startGameServer(httpServer: httpServerType) {
 			}
 			if (north === null) {
 				north = socketId
-				updateClient(socketId)
+				updateAllClients()
 				client.disconnectTimer.restart()
 				if (!game.isSouthTurn()) idleTimer.restart()
 				if (!gameTimer.isRunning()) gameTimer.restart()
@@ -134,14 +136,14 @@ export function startGameServer(httpServer: httpServerType) {
 			// remove from actively playing
 			if (socketId === south) {
 				south = null
-				updateClient(socketId)
+				updateAllClients()
 				client.disconnectTimer.restart()
 				if (game.isSouthTurn()) idleTimer.stop()
 				return
 			}
 			if (socketId === north) {
 				north = null
-				updateClient(socketId)
+				updateAllClients()
 				client.disconnectTimer.restart()
 				if (!game.isSouthTurn()) idleTimer.stop()
 				return
@@ -194,6 +196,7 @@ export function startGameServer(httpServer: httpServerType) {
 	}
 
 	function onDisconnect(socketId: string) {
+		console.log(socketId + ' disconnected')
 		if (south === socketId) {
 			south = null
 			if (game.isSouthTurn()) idleTimer.stop()
@@ -209,7 +212,7 @@ export function startGameServer(httpServer: httpServerType) {
 		client.disconnectTimer.stop()
 
 		clients.delete(socketId)
-		console.log(socketId + ' disconnected')
+		updateAllClients()
 	}
 
 
