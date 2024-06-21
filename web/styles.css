@@ -209,29 +209,6 @@ label {
 
 /* STATUS & CONTROLS */
 
-#southPlayer,
-#northPlayer
-{
-	width: 15px;
-	height: 15px;
-	z-index: 1;
-	border-radius: 5px;
-	border: 2px solid dimgrey;
-	background-color: grey;
-	transition: all 0.3s;
-}
-
-#southPlayer.active
-{
-	border-color: goldenrod;
-	background-color: gold;
-}
-#northPlayer.active
-{
-	border-color: chocolate;
-	background-color: coral;
-}
-
 #status
 {
 	text-align: center;

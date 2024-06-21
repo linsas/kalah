@@ -9,8 +9,6 @@ const socket = io({
 })
 
 const resetAllStyles = () => {
-	document.querySelector('#southPlayer').classList.remove('active')
-	document.querySelector('#northPlayer').classList.remove('active')
 	document.querySelector('div#board').classList.remove('offline', 'playerTurn', 'southTurn', 'northTurn', 'southVictory', 'northVictory', 'tie')
 	document.querySelectorAll('.vessel').forEach(v => v.classList.remove('previous', 'capture', 'freeturn'))
 }
@@ -33,6 +31,7 @@ socket.on('disconnect', () => {
 	document.querySelector('span#role').textContent = 'You are not connected.'
 	document.querySelector('span#turn').textContent = ''
 	document.querySelector('span#numSpectators').textContent = ''
+	document.querySelector('span#playersActive').textContent = ''
 	document.querySelector('button#connect').disabled = false
 	document.querySelector('button#connect').textContent = 'Connect'
 	document.querySelector('button#role').textContent = 'Play'
@@ -44,12 +43,18 @@ socket.on('update', (payload) => {
 
 	resetAllStyles()
 
-	if (payload.isSouthActive) document.querySelector('#southPlayer').classList.add('active')
-	if (payload.isNorthActive) document.querySelector('#northPlayer').classList.add('active')
+	document.querySelector('span#playersActive').textContent =
+		(payload.isSouthActive ? 'South has a player.' : 'South doesn\'t have a player.')
+		+ ' ' +
+		(payload.isNorthActive ? 'North has a player.' : 'North doesn\'t have a player.')
 
 	const isPlayer = payload.role === 'south' || payload.role === 'north'
 
-	document.querySelector('span#role').textContent = payload.role === 'south' ? 'You are south.' : payload.role === 'north' ? 'You are north.' : `You are spectating. The score is ${payload.game.southScore}:${payload.game.northScore}`
+	document.querySelector('span#role').textContent =
+		payload.role === 'south' ? 'You are south.' :
+		payload.role === 'north' ? 'You are north.' :
+		`You are spectating. The score is ${payload.game.southScore} : ${payload.game.northScore}`
+
 	document.querySelector('span#numSpectators').textContent = payload.spectators === 1 ? 'There is 1 spectator.' : `There are ${payload.spectators} spectators.`
 	document.querySelector('button#role').textContent = !isPlayer ? 'Play' : 'Spectate'
 
